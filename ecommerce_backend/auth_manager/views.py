@@ -4,7 +4,8 @@ from rest_framework.decorators import action
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from shared.exception_handling import ApiErrors, AuthException
+# from ecommerce_backend.shared.exception_handling.api_exceptions import AuthException
+# from shared.exception_handling import ApiErrors
 
 
 class AuthViewSet(ViewSet):    
@@ -18,9 +19,12 @@ class AuthViewSet(ViewSet):
 
         user = authenticate(username=username, password=password)
         if not user:
-            raise AuthException(
-                ApiErrors.AUTHENTICATION_FAILED.value,
+            return Response(
+                {"message": "Invalid credentials"}, status=400
             )
+            # raise AuthException(
+            #     ApiErrors.AUTHENTICATION_FAILED.value,
+            # )
 
         totp_device, _ = TOTPDevice.objects.get_or_create(
             user=user, confirmed=True
