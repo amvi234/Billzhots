@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "E-commerce app",
+  title: "CartVault",
   description: "Developed by Amit Vikram",
 };
 
