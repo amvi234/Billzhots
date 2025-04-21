@@ -1,14 +1,13 @@
 import lodash from 'lodash';
 import { UseFormSetError } from 'react-hook-form';
 import { ApiErrorResponse } from './types';
-import { localStorageManager, history } from '@/app/lib/utils';
+// import { localStorageManager, history } from '@/app/lib/utils';
 
-export const logout = () => {
-  localStorageManager.removeToken();
-  localStorageManager.removeRefreshToken();
-
-  history.push('/login');
-};
+// export const logout = () => {
+//   localStorageManager.removeToken();
+//   localStorageManager.removeRefreshToken();
+//   history.push('/login');
+// };
 
 export const getErrorMessages = (error: ApiErrorResponse) => {
   return (

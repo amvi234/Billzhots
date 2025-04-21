@@ -1,24 +1,40 @@
 import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { EnvVariables } from '../env-variables';
-// import { localStorageManager } from '../../lib/utils';
 import { ApiErrorType } from './enums';
-import { logout } from './helpers';
+// import { logout } from './helpers';
 import { ApiErrorResponse, ApiResponse, RefreshTokenResponse } from './types';
 import { localStorageManager } from '@/app/lib/utils';
 
 declare module '@tanstack/react-query' {
   interface Register {
     defaultError: ApiErrorResponse;
-
     defaultSuccess: ApiResponse;
   }
 }
+const BACKEND_URL ='http://localhost:8000';
 
 const api = axios.create({
-  baseURL: EnvVariables.backendUrl,
+  baseURL: BACKEND_URL,
+  // Add these settings to handle CORS if needed.
+  withCredentials: false,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorageManager.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+},
+  (error) => {
+    return Promise.reject(error);
+  }
+)
 
 api.interceptors.response.use(
   (res) => res.data,
@@ -51,7 +67,7 @@ api.interceptors.response.use(
       switch (errorResponse?.meta.type) {
         case ApiErrorType.AuthenticationFailed:
         case ApiErrorType.TokenBlacklisted:
-          logout();
+          // logout();
           break;
       }
     } else {
@@ -84,11 +100,11 @@ export const handleRefreshToken = async () => {
         localStorageManager.setToken(res.data.access);
       }
     } else {
-      logout();
+      // logout();
     }
   } catch (e: any) {
     if (e.meta?.type === ApiErrorType.TokenError) {
-      logout();
+      // logout();
     }
   }
 };

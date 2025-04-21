@@ -26,6 +26,10 @@ SECRET_KEY = "django-insecure-r+wzv7fv^^wopp)w*e23%hfy6^nh*q-$4te(uax6m7(wqo$^ed
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # or whatever port your frontend is running on
+]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -40,11 +44,14 @@ INSTALLED_APPS = [
     "auth_manager.apps.AuthManagerConfig",
     "rest_framework",
     "django_otp",
+    "corsheaders",
     "django_otp.plugins.otp_totp",
     "two_factor",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
