@@ -26,9 +26,6 @@ SECRET_KEY = "django-insecure-r+wzv7fv^^wopp)w*e23%hfy6^nh*q-$4te(uax6m7(wqo$^ed
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # or whatever port your frontend is running on
-]
 CORS_ALLOW_ALL_ORIGINS = True
 
 
@@ -63,8 +60,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
-    "django_otp.plugins.otp_totp.auth.OTPBackend",
+    'django.contrib.auth.backends.ModelBackend', 
 )
 
 ROOT_URLCONF = "ecommerce_backend.urls"

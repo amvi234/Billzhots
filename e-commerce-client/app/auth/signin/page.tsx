@@ -4,11 +4,11 @@ import { useLoginRequest, useVerifyOtpRequest } from '@/app/shared/api/auth/auth
 import { useRouter } from 'next/navigation';
 
 const SignInPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpRequired, setOtpRequired] = useState(false);
-  const [otpSecret, setOtpSecret] = useState<Number>();
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [otp, setOtp] = useState<string>('');
+  const [otpRequired, setOtpRequired] = useState<boolean>(false);
+  const [otpSecret, setOtpSecret] = useState<string>();
   const [error, setError] = useState<string>();
   const router = useRouter();
   // Hooks.
@@ -29,8 +29,12 @@ const SignInPage = () => {
   } = useVerifyOtpRequest();
 
   useEffect(() => {
-    
-  },[isSuccessLoginRequest, loginRequestResponse])
+    if (isSuccessLoginRequest && loginRequestResponse) {
+      setOtpRequired(true);
+      setOtpSecret(loginRequestResponse.data.otp_secret)
+    }
+  }, [isSuccessLoginRequest, loginRequestResponse])
+  
   useEffect(() => {
     if (isSuccessVerifyOtpRequest) {
       console.log('heere')
@@ -42,19 +46,19 @@ const SignInPage = () => {
     setError('');
 
     if (otpRequired) {
-      sendLoginRequest({
+      verifyLoginOtpRequest({
         username,
         password,
         otp
       });
     } else {
-      verifyLoginOtpRequest({
+      console.log('should')
+      sendLoginRequest({
         username,
         password
       });
     }
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded shadow-md">

@@ -8,10 +8,6 @@ from rest_framework.viewsets import ViewSet
 import base64
 import os
 
-# from ecommerce_backend.shared.exception_handling.api_exceptions import AuthException
-# from shared.exception_handling import ApiErrors
-
-
 class AuthViewSet(ViewSet):
     @action(
         detail=False,
@@ -22,10 +18,9 @@ class AuthViewSet(ViewSet):
         password = request.data.get("password")
         
         user = authenticate(username=username, password=password)
-        
         if not user:
             return Response(
-                {"meta": {"message": "Invalid credentials", "status_code": 400}}, 
+                {"meta": {"message": "Invalid credentials", "status_code": 400}},
                 status=400
             )
         
