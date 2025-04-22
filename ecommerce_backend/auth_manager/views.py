@@ -1,12 +1,14 @@
+import base64
+import os
+
 import pyotp
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-import base64
-import os
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class AuthViewSet(ViewSet):
     @action(
@@ -16,57 +18,54 @@ class AuthViewSet(ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-        
+
         user = authenticate(username=username, password=password)
         if not user:
             return Response(
                 {"meta": {"message": "Invalid credentials", "status_code": 400}},
-                status=400
+                status=400,
             )
-        
-        # Get or create a TOTP device for the user
+
+        # Get or create a TOTP device for the user.
         totp_device, created = TOTPDevice.objects.get_or_create(
             user=user,
             defaults={
-                'confirmed': True,
-                'key': base64.b32encode(os.urandom(10)).decode('utf-8')  # Generate a secret key if creating new device
-            }
+                "confirmed": True,
+                "key": base64.b32encode(os.urandom(10)).decode(
+                    "utf-8"
+                ),  # Generate a secret key if creating new device
+            },
         )
-        
-        # If the device exists but isn't confirmed, confirm it
+
+        # If the device exists but isn't confirmed, confirm it.
         if not totp_device.confirmed:
             totp_device.confirmed = True
             totp_device.save()
-        
-        # Generate current OTP
+
+        # Generate current OTP.
         otp = pyotp.TOTP(totp_device.key).now()
-        
-        # Format the response to match the expected interface
+
         response = {
-            "meta": {
-                "message": "User authenticated successfully.",
-                "status_code": 200
-            },
+            "meta": {"message": "User authenticated successfully.", "status_code": 200},
             "data": {
                 "otp_secret": totp_device.key,
                 "otp": otp,
-                "message": "Enter OTP to complete authentication"
-            }
+                "message": "Enter OTP to complete authentication",
+            },
         }
-        
+
         return Response(response)
-    
+
     @action(
         detail=False,
         methods=["post"],
     )
     def verify_otp(self, request):
-        print('requested came')
+        print("requested came")
         username = request.data.get("username")
         password = request.data.get("password")
-        print(username)
-        
-        otp_code = request.data.get('otp')
+
+        otp_code = request.data.get("otp")
 
         user = authenticate(username=username, password=password)
         if not user:
@@ -84,11 +83,11 @@ class AuthViewSet(ViewSet):
         access_token = str(refresh.access_token)
 
         response = {
-        "message": "Login successful",
-        "data": {
-            "access": access_token,
-            "refresh": str(refresh),
+            "message": "Login successful",
+            "data": {
+                "access": access_token,
+                "refresh": str(refresh),
+            },
         }
-    }
 
         return Response(response)

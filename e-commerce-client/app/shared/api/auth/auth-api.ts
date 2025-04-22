@@ -13,7 +13,7 @@ export const verifyOtpRequest = async (
 }
 
 export const loginRequest = async (
-    payload: LoginPayload,  
+    payload: LoginPayload,
 ): Promise<ApiResponse<LoginResponse>> => {
     const res = await api.post<any, ApiResponse>('auth/login/', payload);
     res.data = loginResponseMapper(res)

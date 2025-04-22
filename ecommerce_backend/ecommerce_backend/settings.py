@@ -59,9 +59,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
 ]
 
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', 
-)
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 ROOT_URLCONF = "ecommerce_backend.urls"
 
