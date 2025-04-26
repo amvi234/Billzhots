@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import QueryProvider from "./queryProvider";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import "./styles/globals.css";
+import { ToastContainer } from "react-toastify";
+import QueryProvider from "./providers/queryProvider";
+import { AuthProvider } from "./providers";
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: "CartVault",
@@ -25,12 +18,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      ><QueryProvider>
-      {children}
-    </QueryProvider>
-
+      <body style={{
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat"
+      }}>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+            <ToastContainer position='top-right' autoClose={3000} />
+        </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

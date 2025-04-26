@@ -19,3 +19,9 @@ export type LoginResponse = {
     otp: string;
     message: string;
 }
+
+export type RegisterPayload = {
+    username: string;
+    email: string;
+    password: string;
+}

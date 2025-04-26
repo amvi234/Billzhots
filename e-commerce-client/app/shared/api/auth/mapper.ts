@@ -11,6 +11,10 @@ export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
     };
   };
 
+  export const registerResponseMapper = (response: ApiResponse): {} => {
+    return {};
+  };
+
   export const verifyOtpResponseMapper = (response: ApiResponse): VerifyOtpResponse => {
     const data = response.data || {};
 

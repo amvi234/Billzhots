@@ -3,6 +3,7 @@ import os
 
 import pyotp
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -31,9 +32,7 @@ class AuthViewSet(ViewSet):
             user=user,
             defaults={
                 "confirmed": True,
-                "key": base64.b32encode(os.urandom(10)).decode(
-                    "utf-8"
-                ),  # Generate a secret key if creating new device
+                "key": base64.b32encode(os.urandom(10)).decode("utf-8"),
             },
         )
 
@@ -90,4 +89,51 @@ class AuthViewSet(ViewSet):
             },
         }
 
+        return Response(response)
+
+    @action(
+        detail=False,
+        methods=["post"],
+    )
+    def register(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"meta": {"message": "Username already exists", "status_code": 400}},
+                status=400,
+            )
+
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"meta": {"message": "Email already exists", "status_code": 400}},
+                status=400,
+            )
+
+        # Create the user
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "meta": {
+                        "message": f"Error creating user: {str(e)}",
+                        "status_code": 400,
+                    }
+                },
+                status=400,
+            )
+
+        response = {
+            "meta": {"message": "User Registration is Completed"},
+            "data": {},
+        }
         return Response(response)
