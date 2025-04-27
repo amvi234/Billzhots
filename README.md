@@ -24,7 +24,6 @@ Often People have the habit of saving their loved in platforms like flipkart, am
 
 - Implement a robust Dashboard Page
 - Implement a Cart Page with Categories
-- Fix the background image issue
 - Fix the token saving to handle Auth Context properly
 
 ## Moving Forward
