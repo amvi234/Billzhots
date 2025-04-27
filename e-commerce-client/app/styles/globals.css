@@ -17,13 +17,6 @@
     }
   }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -32,7 +25,9 @@
 }
 
 body {
-  background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRndJ5IFQdSxOS3jnAzdDXCp0Hqs3XCz3exHp91vJB9iA&s&ec=72940542') !important;
-  background-repeat: no-repeat;
+  background-image: url('https://thumbs.dreamstime.com/b/golden-security-digital-password-lock-key-box-shopping-cart-logo-coins-golden-security-digital-password-lock-key-169463684.jpg') !important;
+  background-size: cover !important;
+  background-position: center;
+  background: fixed;
   background: white;
 }

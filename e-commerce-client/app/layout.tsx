@@ -18,12 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        backgroundRepeat: "no-repeat"
-      }}>
+      <body >
         <QueryProvider>
           <AuthProvider>
             {children}
