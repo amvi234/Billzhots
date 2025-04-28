@@ -125,7 +125,7 @@ const LogInPage = () => {
                     <button
                       type="button"
                       onClick={() => setHasScanned(true)}
-                      className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                      className="w-full cursor-grab py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     >
                       I've scanned the QR code
                     </button>

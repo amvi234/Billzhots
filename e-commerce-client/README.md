@@ -34,15 +34,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-# MFA
-
-This implementation covers the full authentication flow with MFA:
-
-User enters username and password
-If credentials are valid, the backend returns an OTP challenge
-User enters the OTP code
-If OTP is valid, the backend returns access and refresh tokens
-The tokens are stored in local storage
-Subsequent API requests include the access token in the Authorization header
-If the access token expires, the refresh token is used to get a new access token
