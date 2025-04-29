@@ -113,7 +113,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (_, error) => {
-        if (error.meta.type === ApiErrorType.TokenError) {
+        if (error.meta?.type === ApiErrorType.TokenError) {
           handleRefreshToken();
           return true;
         }
