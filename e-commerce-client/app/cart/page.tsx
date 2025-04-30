@@ -1,34 +1,20 @@
-// app/cart/page.tsx
 "use client"
-
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../providers';
-import { useCartItems, useDeleteCartItem } from '../shared/api/cart/cart-api';
 import { CartItem } from '../shared/api/cart/types';
 
 export default function CartPage() {
+  // Contexts.
   const { isAuthenticated } = useAuth();
+
+  // Router.
   const router = useRouter();
-  const { data: cartResponse, isLoading, refetch } = useCartItems();
-  const deleteCartItem = useDeleteCartItem();
+
+  // States.
   const [selectedReport, setSelectedReport] = useState<CartItem | null>(null);
-
-//   useEffect(() => {
-//     if (!isAuthenticated) {
-//       router.push('/login');
-//     }
-//   }, [isAuthenticated, router]);
-
-  const handleDeleteItem = async (itemId: string) => {
-    try {
-      await deleteCartItem.mutateAsync(itemId);
-      refetch(); // Refresh the cart items
-    } catch (error) {
-      console.error("Failed to delete item:", error);
-    }
-  };
-
+  
+  // Hooks.
   const handleViewDetails = (item: CartItem) => {
     setSelectedReport(item);
   };

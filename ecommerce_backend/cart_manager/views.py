@@ -29,7 +29,7 @@ class CartViewSet(ViewSet):
             )
 
     @action(detail=False, methods=["post"])
-    def analyze_product(self, request):
+    def generate_report(self, request):
         self.initialize_model()
         prompt = request.data.get("prompt", "").strip()
 
@@ -57,7 +57,7 @@ class CartViewSet(ViewSet):
             with torch.no_grad():
                 outputs = self.model.generate(
                     inputs.input_ids,
-                    max_new_tokens=300,
+                    max_new_tokens=500,  # Increased to allow for full JSON response
                     do_sample=True,
                     temperature=0.7,
                     top_p=0.9,
@@ -67,7 +67,7 @@ class CartViewSet(ViewSet):
             response_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
             response_cleaned = response_text.split("Answer:")[-1].strip()
 
-            return Response({"analysis": response_cleaned})
+            return Response({"data": response_cleaned})
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)

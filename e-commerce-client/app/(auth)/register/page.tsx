@@ -119,7 +119,7 @@ const RegisterPage = () => {
             )}
             <button
               type="submit"
-              className="w-full cursor-grab py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:bg-blue-400 disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full cursor-pointer py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:bg-blue-400 disabled:opacity-75 disabled:cursor-not-allowed"
               disabled={isLoadingRegisterRequest}
             >
               {isLoadingRegisterRequest

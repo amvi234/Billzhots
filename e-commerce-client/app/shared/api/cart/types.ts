@@ -7,7 +7,10 @@ export type CartItem = {
     product_category?: string;
     price_range_min?: number;
     price_range_max?: number;
-  }
+}
+export type GenerateRequestPayload = {
+  prompt: string;
+}
 
   export type AddToCartPayload = {
     title: string;
