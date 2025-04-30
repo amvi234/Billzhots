@@ -1,8 +1,21 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { ApiErrorResponse, ApiResponse } from "../types";
-import { AddToCartPayload, CartCountResponse, CartItem, GenerateRequestPayload } from './types';
-import { addToCartResponseMapper, cartCountResponseMapper, cartItemsResponseMapper } from './mapper';
+import { AddToCartPayload, CartCountResponse, GenerateRequestPayload } from './types';
+import { cartCountResponseMapper } from './mapper';
+
+
+export const addToCartRequest = async (
+  payload: AddToCartPayload
+): Promise<ApiResponse<{}>> => {
+  const res = await api.post<any, ApiResponse>('cart/', payload);
+  return res;
+};
+
+export const useAddToCart = () =>
+  useMutation<ApiResponse<{}>, ApiErrorResponse, AddToCartPayload>({
+    mutationFn: (payload) => addToCartRequest(payload),
+  });
 
 export const generateReportRequest = async (
   payload: GenerateRequestPayload
@@ -10,14 +23,6 @@ export const generateReportRequest = async (
   const res = await api.post<any, ApiResponse>('cart/generate_report/', payload);
   return res;
 }
-
-export const addToCartRequest = async (
-  payload: AddToCartPayload
-): Promise<ApiResponse<CartItem>> => {
-  const res = await api.post<any, ApiResponse>('cart/', payload);
-  res.data = addToCartResponseMapper(res);
-  return res;
-};
 
 export const getCartCountRequest = async (): Promise<ApiResponse<CartCountResponse>> => {
   const res = await api.get<any, ApiResponse>('cart/count/');
@@ -35,9 +40,3 @@ export const useCartCount = () =>
     queryKey: ['cartCount'],
     queryFn: getCartCountRequest,
   });
-
-export const useAddToCart = () =>
-  useMutation<ApiResponse<CartItem>, ApiErrorResponse, any>({
-    mutationFn: async (payload: AddToCartPayload) => addToCartRequest(payload),
-  });
-

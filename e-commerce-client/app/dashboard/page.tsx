@@ -2,18 +2,15 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../providers';
-import { useAddToCart, useGenerateReportRequest } from '../shared/api/cart/cart-api';
+import { useGenerateReportRequest } from '../shared/api/cart/cart-api';
 
 export default function Dashboard() {
   // Contexts.
   const { logout } = useAuth();
 
-  // Router.
-  const router = useRouter();
-
   // States.
   const [prompt, setPrompt] = useState('');
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<any>('');
 
   // Hooks.
   const {
@@ -23,13 +20,9 @@ export default function Dashboard() {
     isSuccess: isSuccessGenerateReport,
   } = useGenerateReportRequest()
 
-  // const { data: cartCountData } = useCartCount();
-  const addToCart = useAddToCart();
-
   // useEffects.
   useEffect(() => {
     if (isSuccessGenerateReport && reportResponse) {
-      console.log(reportResponse.data);
       setReport(reportResponse.data);
     }
   }, [isSuccessGenerateReport, reportResponse]);
@@ -40,21 +33,6 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold">CartVault Dashboard</h1>
 
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => router.push('/cart')}
-            className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-            </svg>
-            Cart
-            {/* {cartCountData && cartCountData?.data?.count > 0 && (
-              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-1">
-                {cartCountData.data.count}
-              </span>
-            )} */}
-          </button>
-
           <button
             onClick={logout}
             className="bg-red-600 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
@@ -100,10 +78,14 @@ export default function Dashboard() {
         </div>
       </div>
       <div>
-        <h2 className="text-xl font-semibold mb-4">Report</h2>
-        <p className="text-gray-700 mb-4">
-          <span>{report}</span>
-        </p>
+        {report && (
+          <>
+            <h2 className="text-xl font-semibold mb-4">Report</h2>
+            <p className="text-gray-700 mb-4">
+              <span>{report}</span>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

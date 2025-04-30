@@ -1,4 +1,6 @@
 import torch
+from cart_manager.models import Cart
+from cart_manager.serializer import CartSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
@@ -7,8 +9,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class CartViewSet(ViewSet):
     """
-    A simple ViewSet for product analysis
+    A simple ViewSet for product analysis and cart management
     """
+
+    serializer_class = CartSerializer
 
     tokenizer = None
     model = None
@@ -57,7 +61,7 @@ class CartViewSet(ViewSet):
             with torch.no_grad():
                 outputs = self.model.generate(
                     inputs.input_ids,
-                    max_new_tokens=500,  # Increased to allow for full JSON response
+                    max_new_tokens=500,
                     do_sample=True,
                     temperature=0.7,
                     top_p=0.9,
@@ -71,3 +75,14 @@ class CartViewSet(ViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+    def create(self, serializer):
+        print(self.request.user)
+        serializer.save(user=self.request.user)
+        print(serializer.data)
+        return Response({"data": serializer.data})
+
+    @action(detail=False, methods=["get"])
+    def count(self, request):
+        count = Cart.objects.filter(user=request.user).count()
+        return Response({"data": count})
