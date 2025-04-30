@@ -14,7 +14,6 @@ class CartViewSet(ViewSet):
     model = None
 
     def __init__(self, **kwargs):
-        # Don't pass kwargs to the parent if you're not using ModelViewSet
         super().__init__()
 
     @classmethod
@@ -29,30 +28,46 @@ class CartViewSet(ViewSet):
                 low_cpu_mem_usage=True,
             )
 
-    @action(
-        detail=False,
-        methods=["post"],
-    )
+    @action(detail=False, methods=["post"])
     def analyze_product(self, request):
         self.initialize_model()
-        prompt = request.data.get("prompt", "")
+        prompt = request.data.get("prompt", "").strip()
 
         if not prompt:
             return Response({"error": "Prompt is required"}, status=400)
 
         try:
+            instruction = (
+                "You are a helpful product research assistant. Analyze the following product and provide:\n"
+                "1. Key features\n"
+                "2. Top items on Amazon, Flipkart, and Myntra with price and rating\n"
+                "3. A comparison of deals with a conclusion on the best one\n"
+                "4. An averaged review summary.\n\n"
+                f"Product: {prompt}\n\n"
+                "Answer:"
+            )
+
             inputs = self.tokenizer(
-                f"Analyze product: {prompt}",
+                instruction,
                 return_tensors="pt",
                 truncation=True,
                 max_length=512,
             )
 
             with torch.no_grad():
-                outputs = self.model.generate(inputs.input_ids, max_new_tokens=150)
+                outputs = self.model.generate(
+                    inputs.input_ids,
+                    max_new_tokens=300,
+                    do_sample=True,
+                    temperature=0.7,
+                    top_p=0.9,
+                    eos_token_id=self.tokenizer.eos_token_id,
+                )
 
-            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            return Response({"analysis": response})
+            response_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            response_cleaned = response_text.split("Answer:")[-1].strip()
+
+            return Response({"analysis": response_cleaned})
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)

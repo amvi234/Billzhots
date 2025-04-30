@@ -22,5 +22,8 @@ sqlparse==0.5.3
 typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.27.0
+torch==2.7.0
+django-cors-headers==4.7.0
+transformers==4.51.3
 phonenumbers==9.0.1
 pre-commit===3.5.0
