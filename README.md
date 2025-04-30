@@ -3,6 +3,9 @@
 ## Description:
 A NextJs and Django Web App.
 
+## Project Explanation and Demo
+[![CartVault App Demo](https://img.youtube.com/vi/t61LTc90L5o/maxresdefault.jpg)](https://www.youtube.com/watch?v=t61LTc90L5o)
+
 ## Problem Statement:
 Often People have the habit of saving their loved in platforms like flipkart, amazon, etc.., But sometimes users cannot find their exact item from this list and do a complete inspection.
 
