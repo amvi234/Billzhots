@@ -1,7 +1,7 @@
-# CARTVAULT APP
+# CarTVaulT APP
 
 ## Description:
-A NextJs and Django Web App.
+A NextJs and Django Web App supporting MFA and AI integration. Get AI prompted responses on the product research, inspection, analysis, reviews and filtering.
 
 ## Project Explanation and Demo
 [![CartVault App Demo](https://img.youtube.com/vi/t61LTc90L5o/maxresdefault.jpg)](https://www.youtube.com/watch?v=t61LTc90L5o)
@@ -25,8 +25,7 @@ Often People have the habit of saving their loved in platforms like flipkart, am
 
 ## Future Enhancements and Fixes
 
-- Implement a robust Dashboard Page
-- Implement a Cart Page with Categories
+- Implement a Cart Page for storing prompt reports wrt users
 - Fix the token saving to handle Auth Context properly
 
 ## Moving Forward
