@@ -25,9 +25,8 @@
 }
 
 body {
-  background-image: url('https://thumbs.dreamstime.com/b/golden-security-digital-password-lock-key-box-shopping-cart-logo-coins-golden-security-digital-password-lock-key-169463684.jpg') !important;
-  background-size: cover !important;
-  background-position: center;
-  background: fixed;
-  background: white;
+  background: white url('/file.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  margin: 0;
 }

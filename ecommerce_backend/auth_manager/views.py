@@ -60,7 +60,6 @@ class AuthViewSet(ViewSet):
         methods=["post"],
     )
     def verify_otp(self, request):
-        print("requested came")
         username = request.data.get("username")
         password = request.data.get("password")
 

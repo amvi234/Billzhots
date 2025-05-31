@@ -30,10 +30,6 @@ export const getCartCountRequest = async (): Promise<ApiResponse<CartCountRespon
   return res;
 };
 
-export const useGenerateReportRequest = () =>
-  useMutation<ApiResponse<{}>, ApiErrorResponse, any>({
-    mutationFn: async (payload: GenerateRequestPayload) => generateReportRequest(payload),
-  });
 
 export const useCartCount = () =>
   useQuery({
