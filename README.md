@@ -1,7 +1,7 @@
 # Billzhots APP
 
 ## Description:
-A NextJs and Django Web App supporting MFA and AI integration. Get AI prompted responses on the product research, inspection, analysis, reviews and filtering.
+A NextJs and Django Web App supporting MFA and AI integration. Get AI integrated bills amount calculation with scanned images.
 
 ## TECH used
 
