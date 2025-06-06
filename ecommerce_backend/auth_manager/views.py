@@ -113,7 +113,6 @@ class AuthViewSet(ViewSet):
                 status=400,
             )
 
-        
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -122,6 +121,6 @@ class AuthViewSet(ViewSet):
 
         response = {
             "meta": {"message": "User Registration is Completed"},
-            "data": {user: {user}},
+            "data": {"user": {"email": user.email}},
         }
         return Response(response)
