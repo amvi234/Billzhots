@@ -2,20 +2,25 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../providers';
+import { localStorageManager } from '../lib/utils';
 
 export default function Dashboard() {
   // Contexts.
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   // States.
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [dragActive, setDragActive] = useState(false);
- 
-  // Hooks.
-  
-  // useEffects.
+
+  // UseEffects.
+ useEffect(() => {
+    if (!localStorageManager.hasToken()) {
+      router.push('/login');
+    }
+  }, [router]);
 
   // Constants.
   const ACCEPTED_TYPES = {
@@ -104,7 +109,7 @@ export default function Dashboard() {
       const uploadPromises = selectedFiles.map(async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         // Replace this with your actual upload endpoint
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -121,18 +126,18 @@ export default function Dashboard() {
           size: file.size,
           type: file.type,
           uploadedAt: new Date().toISOString(),
-          url: result.url, 
+          url: result.url,
         };
       });
 
       const results = await Promise.all(uploadPromises);
-      
+
       // Add to uploaded files list.
       setUploadedFiles(prev => [...prev, ...results]);
-      
+
       // Clear selected files.
       setSelectedFiles([]);
-      
+
       alert('Files uploaded successfully!');
     } catch (error) {
       console.error('Upload error:', error);
@@ -159,6 +164,7 @@ export default function Dashboard() {
     return '📁';
   };
 
+
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
@@ -176,14 +182,13 @@ export default function Dashboard() {
       {/* File Upload Section */}
       <div className="bg-transparent rounded shadow-md p-6 mb-8">
         <h2 className="bg-red text-2xl font-semibold mb-4 text-center text-red-400">File Upload</h2>
-        
+
         {/* Drag and Drop Area */}
         <div
-          className={`bg-red-100 border-2 border rounded-lg p-8 text-center transition-colors ${
-            dragActive 
-              ? 'border-blue-500 bg-blue-50' 
+          className={`bg-red-100 border-2 border rounded-lg p-8 text-center transition-colors ${dragActive
+              ? 'border-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-gray-400'
-          }`}
+            }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
@@ -238,16 +243,15 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-4 flex justify-end">
               <button
                 onClick={uploadFiles}
                 disabled={uploading}
-                className={`px-6 py-2 rounded text-white font-medium ${
-                  uploading 
-                    ? 'bg-gray-400 cursor-not-allowed' 
+                className={`px-6 py-2 rounded text-white font-medium ${uploading
+                    ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-green-500 hover:bg-green-600 cursor-pointer'
-                }`}
+                  }`}
               >
                 {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} File(s)`}
               </button>

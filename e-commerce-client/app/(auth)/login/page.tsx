@@ -5,8 +5,13 @@ import { useLoginRequest, useVerifyOtpRequest } from '@/app/shared/api/auth/auth
 import { useRouter } from 'next/navigation';
 import QRCode from 'react-qr-code'
 import { toast } from 'react-toastify';
+import { localStorageManager } from '@/app/lib/utils';
+import { useAuth } from '@/app/providers';
 
 const LogInPage = () => {
+  // Contexts.
+  const { login } = useAuth();
+
   // States.
   const [username, setUsername] = useState<string>('');
   const [hasScanned, setHasScanned] = useState<boolean>(false);
@@ -32,6 +37,7 @@ const LogInPage = () => {
   const {
     mutate: verifyLoginOtpRequest,
     isSuccess: isSuccessVerifyOtpRequest,
+    data: verifyOtpRequestResponse,
     isPending: isLoadingVerifyRequest,
     isError: isErrorVerifyOtp,
     error: errorVerifyOtp,
@@ -50,10 +56,11 @@ const LogInPage = () => {
 
   useEffect(() => {
     if (isSuccessVerifyOtpRequest) {
+      login();
       router.push('/dashboard');
+      toast.success('Login Successful')
     }
     if (isErrorVerifyOtp && errorVerifyOtp) {
-      console.log(errorVerifyOtp)
       toast.error(errorVerifyOtp.meta.message);
     }
   }, [isSuccessVerifyOtpRequest, isErrorVerifyOtp])
@@ -154,7 +161,7 @@ const LogInPage = () => {
               type="submit"
               className="w-full py-2 px-4 bg-blue-600 cursor-pointer text-white rounded hover:bg-blue-700 transition disabled:bg-blue-400 disabled:opacity-75 disabled:cursor-not-allowed"
               disabled={isLoadingLoginRequest || isLoadingVerifyRequest || (otpRequired && !otp.trim())}>
-              {isLoadingVerifyRequest || isLoadingVerifyRequest
+              {isLoadingVerifyRequest
                 ? 'Processing...'
                 : otpRequired
                   ? 'Verify OTP'

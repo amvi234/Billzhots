@@ -5,8 +5,8 @@ export type VerifyOtpPayload = {
 }
 
 export type VerifyOtpResponse = {
-    access_token: string;
-    refresh_token: string;
+    access: string;
+    refresh: string;
 }
 
 export type LoginPayload = {

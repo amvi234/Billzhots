@@ -2,6 +2,7 @@
 export const localStorageManager = {
     // Auth.
     getToken: () => {
+        
         return localStorage.getItem('token');
     },
     setToken: (token: string) => {

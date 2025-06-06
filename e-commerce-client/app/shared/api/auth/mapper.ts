@@ -1,6 +1,7 @@
 import { localStorageManager } from "@/app/lib/utils";
 import { ApiResponse } from "../types";
 import { LoginResponse, VerifyOtpResponse } from "./types";
+import { useState } from "react";
 
 export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
     const data = response.data || {};
@@ -19,6 +20,7 @@ export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
     const data = response.data || {};
 
     if (data.access) {
+      console.log('came', data.access)
       localStorageManager.setToken(data.access);
     }
 
@@ -27,7 +29,7 @@ export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
     }
 
     return {
-      access_token: data.access || '',
-      refresh_token: data.refresh || ''
+      access: data.access || '',
+      refresh: data.refresh || ''
     };
   };

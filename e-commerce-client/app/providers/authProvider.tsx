@@ -1,13 +1,14 @@
-// providers/auth-provider.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { history, localStorageManager } from '@/app/lib/utils';
+import { set } from 'lodash';
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  login: () => void;
   getAccessToken: () => string | null;
 };
 
@@ -17,36 +18,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
-  // Check authentication status on initial load
-  useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      setIsAuthenticated(true);
-    }
-  }, [router]);
-
-  const login = (accessToken: string, refreshToken: string) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    setIsAuthenticated(true);
-  };
-
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setIsAuthenticated(false);
+    localStorageManager.removeToken();
+    localStorageManager.removeRefreshToken();
+    history?.push('/login');
     router.push('/login');
   };
 
+  const login = () => {
+    setIsAuthenticated(true);
+  }
+
   const getAccessToken = () => {
-    return localStorage.getItem('accessToken');
+    return localStorageManager.getToken();
   };
 
   return (
     <AuthContext.Provider value={{
       isAuthenticated,
-      login,
       logout,
+      login,
       getAccessToken,
     }}>
       {children}

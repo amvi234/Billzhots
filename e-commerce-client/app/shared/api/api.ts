@@ -64,7 +64,7 @@ api.interceptors.response.use(
       errorResponse = error.response.data;
 
       // Handle token related errors
-      switch (errorResponse?.meta.type) {
+      switch (errorResponse?.meta?.type) {
         case ApiErrorType.AuthenticationFailed:
         case ApiErrorType.TokenBlacklisted:
           // logout();
@@ -125,7 +125,7 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: (_, error) => {
-        if (error.meta.type === ApiErrorType.TokenError) {
+        if (error.meta?.type === ApiErrorType.TokenError) {
           handleRefreshToken();
           return true;
         }

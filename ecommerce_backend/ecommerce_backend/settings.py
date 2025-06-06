@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "auth_manager.apps.AuthManagerConfig",
-    "cart_manager.apps.CartManagerConfig",
     "rest_framework",
     "django_otp",
     "corsheaders",

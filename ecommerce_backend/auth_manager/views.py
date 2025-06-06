@@ -75,7 +75,7 @@ class AuthViewSet(ViewSet):
 
         totp = pyotp.TOTP(totp_device.key)
         if not totp.verify(otp_code):
-            return Response({"message": "Invalid OTP code"}, status=400)
+            return Response({"meta": {"message": "Otp entered is wrong"}}, status=400)
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
@@ -113,26 +113,15 @@ class AuthViewSet(ViewSet):
                 status=400,
             )
 
-        # Create the user
-        try:
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-            )
-        except Exception as e:
-            return Response(
-                {
-                    "meta": {
-                        "message": f"Error creating user: {str(e)}",
-                        "status_code": 400,
-                    }
-                },
-                status=400,
-            )
+        
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
 
         response = {
             "meta": {"message": "User Registration is Completed"},
-            "data": {},
+            "data": {user: {user}},
         }
         return Response(response)
