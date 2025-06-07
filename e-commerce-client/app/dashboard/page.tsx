@@ -177,7 +177,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-5xl font-bold text-magenta">Billzhots Dashboard</h1>
+        <h1 className="text-5xl font-bold text-red-300">Billzhots Dashboard</h1>
 
         <div className="flex items-center space-x-4">
         <button
