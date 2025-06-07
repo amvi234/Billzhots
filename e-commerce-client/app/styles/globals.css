@@ -25,7 +25,10 @@
 }
 
 body {
-  background: white url('/file.jpg') no-repeat center center fixed;
+  background: url('/file.jpg');
+  background-repeat: no-repeat;
+  background: fixed;
+  background-position: center;
   background-size: cover;
   min-height: 100vh;
   margin: 0;

@@ -27,7 +27,7 @@ export default function Dashboard() {
   // Constants.
   const ACCEPTED_TYPES = {
     'image/png': '.png',
-    'image/jpeg': '.jpg',
+    'image/jpeg': '.jpeg',
     'image/jpg': '.jpg',
     'application/pdf': '.pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
@@ -39,7 +39,7 @@ export default function Dashboard() {
   const validateFile = (file: File) => {
     // Check file type.
     if (!Object.keys(ACCEPTED_TYPES).includes(file.type)) {
-      return `File type ${file.type} is not supported. Only PNG, JPG, PDF, and DOCX files are allowed.`;
+      return `File type ${file.type} is not supported. Only PNG, JPG, JPEG, PDF, and DOCX files are allowed.`;
     }
 
     // Check file size.
@@ -166,13 +166,32 @@ export default function Dashboard() {
     return '📁';
   };
 
+  const showChart = () => {
+
+  }
+
+  const showAmount = () => {
+
+  }
 
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-yellow-800">Billzhots Dashboard</h1>
+        <h1 className="text-5xl font-bold text-magenta">Billzhots Dashboard</h1>
 
         <div className="flex items-center space-x-4">
+        <button
+            onClick={showAmount}
+            className="bg-yellow-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
+          >
+            Amount
+          </button>
+          <button
+            onClick={showChart}
+            className="bg-green-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
+          >
+            Chart
+          </button>
           <button
             onClick={logout}
             className="bg-red-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
@@ -217,7 +236,7 @@ export default function Dashboard() {
               Select Files
             </label>
             <p className="text-sm">
-              Supported formats: PNG, JPG, PDF, DOCX (Max size: 10MB each)
+              Supported formats: PNG, JPG, JPEG, PDF, DOCX (Max size: 10MB each)
             </p>
           </div>
         </div>

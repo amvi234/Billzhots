@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "auth_manager.apps.AuthManagerConfig",
+    "bill_manager.apps.BillManagerConfig" "auth_manager.apps.AuthManagerConfig",
     "rest_framework",
     "django_otp",
     "corsheaders",

@@ -13,11 +13,11 @@ declare module '@tanstack/react-query' {
 }
 const BACKEND_URL ='http://localhost:8000';
 
-const api = axios.create({
-  baseURL: BACKEND_URL,
-  withCredentials: false,
-  headers: {
-    'Content-Type': 'application/json',
+  const api = axios.create({
+    baseURL: BACKEND_URL,
+    withCredentials: false,
+    headers: {
+      'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
