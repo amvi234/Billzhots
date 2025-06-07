@@ -7,7 +7,7 @@ import { AuthProvider } from "./providers";
 import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
-  title: "CartVault",
+  title: "Billzhots",
   description: "Developed by Amit Vikram",
 };
 

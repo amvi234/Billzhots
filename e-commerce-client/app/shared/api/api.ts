@@ -1,10 +1,9 @@
 import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { EnvVariables } from '../env-variables';
 import { ApiErrorType } from './enums';
-// import { logout } from './helpers';
 import { ApiErrorResponse, ApiResponse, RefreshTokenResponse } from './types';
 import { localStorageManager } from '@/app/lib/utils';
+import { logout } from './helpers';
 
 declare module '@tanstack/react-query' {
   interface Register {
@@ -16,7 +15,6 @@ const BACKEND_URL ='http://localhost:8000';
 
 const api = axios.create({
   baseURL: BACKEND_URL,
-  // Add these settings to handle CORS if needed.
   withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
@@ -63,11 +61,10 @@ api.interceptors.response.use(
     } else if (error.response?.data) {
       errorResponse = error.response.data;
 
-      // Handle token related errors
       switch (errorResponse?.meta?.type) {
         case ApiErrorType.AuthenticationFailed:
         case ApiErrorType.TokenBlacklisted:
-          // logout();
+          logout();
           break;
       }
     } else {
@@ -100,11 +97,11 @@ export const handleRefreshToken = async () => {
         localStorageManager.setToken(res.data.access);
       }
     } else {
-      // logout();
+      logout();
     }
   } catch (e: any) {
     if (e.meta?.type === ApiErrorType.TokenError) {
-      // logout();
+      logout();
     }
   }
 };

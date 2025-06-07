@@ -3,10 +3,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
+import { toast } from 'react-toastify';
 
 export default function Dashboard() {
   // Contexts.
-  const { logout, isAuthenticated } = useAuth();
+  const { logout } = useAuth();
   const router = useRouter();
 
   // States.
@@ -19,6 +20,7 @@ export default function Dashboard() {
  useEffect(() => {
     if (!localStorageManager.hasToken()) {
       router.push('/login');
+      toast.error('Not allowed to navigate dashboard without login')
     }
   }, [router]);
 
@@ -168,7 +170,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-yellow-800">CartVault Dashboard</h1>
+        <h1 className="text-3xl font-bold text-yellow-800">Billzhots Dashboard</h1>
 
         <div className="flex items-center space-x-4">
           <button

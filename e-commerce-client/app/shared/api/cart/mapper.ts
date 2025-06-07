@@ -1,4 +1,3 @@
-// Cart API Mappers - services/cart/mapper.ts
 import { ApiResponse } from "../types";
 
 export const cartItemsResponseMapper = (response: ApiResponse): Array<any> => {
