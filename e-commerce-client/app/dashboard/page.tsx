@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
+import { useUploadBill } from '../shared/api/bill/bill-api';
+import { sendError } from 'next/dist/server/api-utils';
 
 export default function Dashboard() {
   // Contexts.
@@ -15,6 +17,16 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [dragActive, setDragActive] = useState(false);
+
+  // Hooks.
+  const {
+    mutate: sendUploadBill,
+    isPending: isLoadingBillRequest,
+    data: uploadBillRequestResponse,
+    isSuccess: isSuccessUploadBillRequest,
+    isError: isErrorUploadBillRequest,
+    error: uploadBillErrorResponse,
+  } = useUploadBill();
 
   // UseEffects.
   useEffect(() => {
@@ -105,6 +117,7 @@ export default function Dashboard() {
   const uploadFiles = async () => {
     if (selectedFiles.length === 0) return;
     setUploading(true);
+    // sendUploadBill(selectedFiles.map());
     // try {
     //   // Create FormData for each file
     //   const uploadPromises = selectedFiles.map(async (file) => {

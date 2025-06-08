@@ -1,7 +1,7 @@
 import { ApiResponse } from "../types";
-import { BillResponse } from "./types";
+import { UploadBillResponse } from "./types";
 
-export const BillResponseMapper = (response: ApiResponse): BillResponse => {
+export const UploadBillResponseMapper = (response: ApiResponse): UploadBillResponse => {
     const data = response.data || {};
     return data;
 }
