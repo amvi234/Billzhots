@@ -20,7 +20,6 @@ export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
     const data = response.data || {};
 
     if (data.access) {
-      console.log('came', data.access)
       localStorageManager.setToken(data.access);
     }
 

@@ -2,7 +2,8 @@ from shared.constants.enums import BaseEnum
 
 
 class FileType(BaseEnum):
-    PDF=".pdf"
-    JPG=".jpg"
-    DOCX=".docx"
-    PNG=".png"
+    PDF = ".pdf"
+    JPG = ".jpg"
+    JPEG = ".jpeg"
+    DOCX = ".docx"
+    PNG = ".png"

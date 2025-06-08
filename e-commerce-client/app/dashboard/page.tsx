@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [dragActive, setDragActive] = useState(false);
 
   // UseEffects.
- useEffect(() => {
+  useEffect(() => {
     if (!localStorageManager.hasToken()) {
       router.push('/login');
       toast.error('Not allowed to navigate dashboard without login')
@@ -62,6 +62,7 @@ export default function Dashboard() {
 
     files.forEach(file => {
       const error = validateFile(file);
+      console.log(file)
       if (error) {
         errors.push(`${file.name}: ${error}`);
       } else {
@@ -103,50 +104,49 @@ export default function Dashboard() {
   // Upload files function
   const uploadFiles = async () => {
     if (selectedFiles.length === 0) return;
-
     setUploading(true);
+    // try {
+    //   // Create FormData for each file
+    //   const uploadPromises = selectedFiles.map(async (file) => {
+    //     const formData = new FormData();
+    //     formData.append('file', file);
 
-    try {
-      // Create FormData for each file
-      const uploadPromises = selectedFiles.map(async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
+    // Replace this with your actual upload endpoint
+    //     const response = await fetch('/api/upload', {
+    //       method: 'POST',
+    //       body: formData,
+    //     });
 
-        // Replace this with your actual upload endpoint
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
+    //     if (!response.ok) {
+    //       throw new Error(`Failed to upload ${file.name}`);
+    //     }
 
-        if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
-        }
+    //     const result = await response.json();
+    //     return {
+    //       name: file.name,
+    //       size: file.size,
+    //       type: file.type,
+    //       uploadedAt: new Date().toISOString(),
+    //       url: result.url,
+    //     };
+    //   });
 
-        const result = await response.json();
-        return {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          uploadedAt: new Date().toISOString(),
-          url: result.url,
-        };
-      });
+    //   const results = await Promise.all(uploadPromises);
 
-      const results = await Promise.all(uploadPromises);
+    //   // Add to uploaded files list.
+    //   setUploadedFiles(prev => [...prev, ...results]);
 
-      // Add to uploaded files list.
-      setUploadedFiles(prev => [...prev, ...results]);
+    //   // Clear selected files.
+    //   setSelectedFiles([]);
 
-      // Clear selected files.
-      setSelectedFiles([]);
+    //   alert('Files uploaded successfully!');
+    // } catch (error) {
+    //   console.error('Upload error:', error);
+    //   alert('Error uploading files. Please try again.');
+    // } finally {
+    //   setUploading(false);
+    // }
 
-      alert('Files uploaded successfully!');
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Error uploading files. Please try again.');
-    } finally {
-      setUploading(false);
-    }
   };
 
   // Format file size.
@@ -180,7 +180,7 @@ export default function Dashboard() {
         <h1 className="text-5xl font-bold text-red-300">Billzhots Dashboard</h1>
 
         <div className="flex items-center space-x-4">
-        <button
+          <button
             onClick={showAmount}
             className="bg-yellow-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
           >
@@ -207,8 +207,8 @@ export default function Dashboard() {
         {/* Drag and Drop Area */}
         <div
           className={`bg-red-100 border-2 border rounded-lg p-8 text-center transition-colors ${dragActive
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400'
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300 hover:border-gray-400'
             }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -270,8 +270,8 @@ export default function Dashboard() {
                 onClick={uploadFiles}
                 disabled={uploading}
                 className={`px-6 py-2 rounded text-white font-medium ${uploading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600 cursor-pointer'
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-600 cursor-pointer'
                   }`}
               >
                 {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} File(s)`}

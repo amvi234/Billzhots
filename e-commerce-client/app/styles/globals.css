@@ -27,7 +27,6 @@
 body {
   background: url('/file.jpg');
   background-repeat: no-repeat;
-  background: fixed;
   background-position: center;
   background-size: cover;
   min-height: 100vh;
