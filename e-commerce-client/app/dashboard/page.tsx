@@ -34,6 +34,7 @@ export default function Dashboard() {
       router.push('/login');
       toast.error('Not allowed to navigate dashboard without login')
     }
+
   }, [router]);
 
   // Constants.
@@ -126,7 +127,7 @@ export default function Dashboard() {
               resolve();
             },
             onError: (err) => {
-              console.error(`Upload failed for ${file.name}:`, err)
+              console.warn(`Upload failed for ${file.name}:`, err)
               reject(err);
             }
           });
@@ -134,10 +135,10 @@ export default function Dashboard() {
       });
       await Promise.all(uploadPromises);
       setSelectedFiles([]);
-      toast.success('Bills uploaded successfully')
+      toast.success('Bill(s) uploaded successfully')
     }
     catch (error) {
-      console.error('Some files failed to upload');
+      console.warn('Some files failed to upload');
     }
     finally {
       setUploading(false);

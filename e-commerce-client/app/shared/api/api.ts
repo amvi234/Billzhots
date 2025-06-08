@@ -89,7 +89,7 @@ export const handleRefreshToken = async () => {
       const res = await api.post<
         Record<string, string>,
         ApiResponse<RefreshTokenResponse>
-      >('/accounts/token/refresh/', {
+      >('/auth/token/refresh/', {
         refresh: refreshToken,
       });
 

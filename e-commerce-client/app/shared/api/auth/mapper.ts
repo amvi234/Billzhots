@@ -27,8 +27,10 @@ export const loginResponseMapper = (response: ApiResponse): LoginResponse => {
       localStorageManager.setRefreshToken(data.refresh);
     }
 
+
     return {
       access: data.access || '',
-      refresh: data.refresh || ''
+      refresh: data.refresh || '',
+      user_id: data.user_id || '',
     };
   };

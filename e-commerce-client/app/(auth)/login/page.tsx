@@ -10,7 +10,6 @@ import { useAuth } from '@/app/providers';
 
 const LogInPage = () => {
   // Contexts.
-  const { login } = useAuth();
 
   // States.
   const [username, setUsername] = useState<string>('');
@@ -56,7 +55,6 @@ const LogInPage = () => {
 
   useEffect(() => {
     if (isSuccessVerifyOtpRequest) {
-      login();
       router.push('/dashboard');
       toast.success('Login Successful')
     }

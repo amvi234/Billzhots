@@ -83,6 +83,7 @@ class AuthViewSet(ViewSet):
         response = {
             "message": "Login successful",
             "data": {
+                "user_id": user.id,
                 "access": access_token,
                 "refresh": str(refresh),
             },
@@ -121,6 +122,6 @@ class AuthViewSet(ViewSet):
 
         response = {
             "meta": {"message": "User Registration is Completed"},
-            "data": {"user": {"email": user.email}},
+            "data": {"user": {"username": user.id}},
         }
         return Response(response)

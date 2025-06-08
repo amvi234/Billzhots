@@ -24,6 +24,7 @@ class BillViewSet(ViewSet):
             data=uploaded_file.read(),
             created_by=request.user,
         )
+
         return Response(
             {
                 "meta": {"message": "Bill uploaded successfully."},

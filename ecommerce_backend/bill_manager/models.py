@@ -10,6 +10,3 @@ class Bill(BaseModel):
     content_type = models.CharField(max_length=50, db_index=True)
     data = models.BinaryField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # # Managers.
-    # all_objects = models.Manager()
