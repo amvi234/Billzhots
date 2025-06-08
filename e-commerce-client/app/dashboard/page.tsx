@@ -284,11 +284,11 @@ export default function Dashboard() {
             {uploadedFiles.map((file, index) => (
               <div key={index} className="flex items-center justify-between bg-gray-50 p-4 rounded">
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getFileIcon(file.type)}</span>
+                  <span className="text-2xl">{}</span>
                   <div>
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-gray-500">
-                      {formatFileSize(file.size)} • Uploaded on {new Date(file.uploadedAt).toLocaleDateString()}
+                      {} • Uploaded on {new Date(file.uploadedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

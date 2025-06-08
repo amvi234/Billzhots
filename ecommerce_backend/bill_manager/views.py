@@ -1,11 +1,14 @@
 # Create your views here.
 from bill_manager.models import Bill
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 
 class BillViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+
     @action(
         detail=False,
         methods=["post"],
@@ -14,10 +17,7 @@ class BillViewSet(ViewSet):
         uploaded_file = request.FILES.get("file")
         if not uploaded_file:
             return Response({"error"}, status=400)
-        print(uploaded_file, "contetn")
-        print(request.user.id, "ioi")
-        print(uploaded_file.name)
-        print(uploaded_file.content_type)
+
         bill = Bill.objects.create(
             name=uploaded_file.name,
             content_type=uploaded_file.content_type,
