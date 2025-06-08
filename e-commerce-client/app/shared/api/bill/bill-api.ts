@@ -19,7 +19,7 @@ export const uploadBill = async (
 }
 
 export const useUploadBill = () => {
-    useMutation<ApiResponse<UploadBillResponse>, ApiErrorResponse, File>({
+    return useMutation<ApiResponse<UploadBillResponse>, ApiErrorResponse, File>({
         mutationFn: async (file) => uploadBill(file),
     })
 }

@@ -117,49 +117,31 @@ export default function Dashboard() {
   const uploadFiles = async () => {
     if (selectedFiles.length === 0) return;
     setUploading(true);
-    // sendUploadBill(selectedFiles.map());
-    // try {
-    //   // Create FormData for each file
-    //   const uploadPromises = selectedFiles.map(async (file) => {
-    //     const formData = new FormData();
-    //     formData.append('file', file);
-
-    // Replace this with your actual upload endpoint
-    //     const response = await fetch('/api/upload', {
-    //       method: 'POST',
-    //       body: formData,
-    //     });
-
-    //     if (!response.ok) {
-    //       throw new Error(`Failed to upload ${file.name}`);
-    //     }
-
-    //     const result = await response.json();
-    //     return {
-    //       name: file.name,
-    //       size: file.size,
-    //       type: file.type,
-    //       uploadedAt: new Date().toISOString(),
-    //       url: result.url,
-    //     };
-    //   });
-
-    //   const results = await Promise.all(uploadPromises);
-
-    //   // Add to uploaded files list.
-    //   setUploadedFiles(prev => [...prev, ...results]);
-
-    //   // Clear selected files.
-    //   setSelectedFiles([]);
-
-    //   alert('Files uploaded successfully!');
-    // } catch (error) {
-    //   console.error('Upload error:', error);
-    //   alert('Error uploading files. Please try again.');
-    // } finally {
-    //   setUploading(false);
-    // }
-
+    try {
+      const uploadPromises = selectedFiles.map(async (file) => {
+        return new Promise<void>((resolve, reject) => {
+          sendUploadBill(file, {
+            onSuccess: (res) => {
+              setUploadedFiles((prev) => [...prev, res.data])
+              resolve();
+            },
+            onError: (err) => {
+              console.error(`Upload failed for ${file.name}:`, err)
+              reject(err);
+            }
+          });
+        });
+      });
+      await Promise.all(uploadPromises);
+      setSelectedFiles([]);
+      toast.success('Bills uploaded successfully')
+    }
+    catch (error) {
+      console.error('Some files failed to upload');
+    }
+    finally {
+      setUploading(false);
+    }
   };
 
   // Format file size.
