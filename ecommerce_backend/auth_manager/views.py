@@ -83,7 +83,7 @@ class AuthViewSet(ViewSet):
         response = {
             "message": "Login successful",
             "data": {
-                "user_id": user.id,
+                "name": user.username,
                 "access": access_token,
                 "refresh": str(refresh),
             },

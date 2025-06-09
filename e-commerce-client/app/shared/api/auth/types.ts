@@ -7,7 +7,7 @@ export type VerifyOtpPayload = {
 export type VerifyOtpResponse = {
     access: string;
     refresh: string;
-    user_id: string;
+    name: string;
 }
 
 export type LoginPayload = {

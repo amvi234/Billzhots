@@ -1,8 +1,13 @@
 
 export const localStorageManager = {
     // Auth.
+    setName: (name: string) => {
+        localStorage.setItem('name', name);
+    },
+    getName: () => {
+        return localStorage.getItem('name');
+    },
     getToken: () => {
-        
         return localStorage.getItem('token');
     },
     setToken: (token: string) => {
