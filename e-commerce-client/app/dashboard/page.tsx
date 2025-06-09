@@ -13,6 +13,7 @@ export default function Dashboard() {
   const router = useRouter();
 
   // States.
+  const [username, setUsername] = useState<string | null>();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
@@ -33,6 +34,15 @@ export default function Dashboard() {
     if (!localStorageManager.hasToken()) {
       router.push('/login');
       toast.error('Not allowed to navigate dashboard without login')
+    }
+    else {
+      const a = localStorageManager.getName();
+      console.log(a,'prev')
+      if (a !== undefined) {
+
+        setUsername(a);
+      }
+      console.log(username);
     }
 
   }, [router]);
@@ -169,7 +179,6 @@ export default function Dashboard() {
   const showAmount = () => {
 
   }
-
   return (
     <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
@@ -289,7 +298,7 @@ export default function Dashboard() {
                   <div>
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-gray-500">
-                      {} • Uploaded on {new Date(file.uploadedAt).toLocaleDateString()}
+                      {} • Uploaded on {new Date(file.uploaded_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
