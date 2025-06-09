@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
@@ -9,15 +9,12 @@ import { sendError } from 'next/dist/server/api-utils';
 
 export default function Dashboard() {
   // Contexts.
+
   const { logout } = useAuth();
   const router = useRouter();
 
-  // States.
-  const [username, setUsername] = useState<string | null>();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [dragActive, setDragActive] = useState(false);
+  // Refs.
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Hooks.
   const {
@@ -29,23 +26,30 @@ export default function Dashboard() {
     error: uploadBillErrorResponse,
   } = useUploadBill();
 
+  // States.
+  const [username, setUsername] = useState<string>(''); 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const toggleDropdown = () => setShowDropdown(prev => !prev);
+
+
   // UseEffects.
   useEffect(() => {
+    const name = localStorageManager.getName();
+    console.log(name,'here')
     if (!localStorageManager.hasToken()) {
       router.push('/login');
-      toast.error('Not allowed to navigate dashboard without login')
+      toast.error('Not allowed to navigate dashboard without login');
+    } else if (name) {
+      console.log('whyyyy')
+      setUsername(name);
     }
-    else {
-      const a = localStorageManager.getName();
-      console.log(a,'prev')
-      if (a !== undefined) {
-
-        setUsername(a);
-      }
-      console.log(username);
-    }
-
   }, [router]);
+
 
   // Constants.
   const ACCEPTED_TYPES = {
@@ -78,6 +82,24 @@ export default function Dashboard() {
     const files = Array.from(event.target.files || []);
     processFiles(files);
   };
+
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
 
   const processFiles = (files: File[]) => {
     const validFiles: File[] = [];
@@ -181,32 +203,55 @@ export default function Dashboard() {
   }
   return (
     <div className="container mx-auto p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-5xl font-bold text-red-300">Billzhots Dashboard</h1>
+      <div className="fixed top-0 left-0 right-0 z-50 bg-green-100 shadow-md h-20 px-8 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-red-800">Billzhots Dashboard</h1>
 
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={showAmount}
-            className="bg-yellow-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
+        <div className="relative flex items-center ">
+          <div
+            onClick={toggleDropdown}
+            className="bg-blue-500 text-white font-semibold rounded-full h-10 w-10 flex items-center justify-center cursor-pointer select-none"
+            title={username || 'Profile'}
           >
-            Amount
-          </button>
-          <button
-            onClick={showChart}
-            className="bg-green-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
-          >
-            Chart
-          </button>
-          <button
-            onClick={logout}
-            className="bg-red-500 cursor-pointer hover:bg-red-700 text-white py-2 px-4 rounded"
-          >
-            Logout
-          </button>
+            {username?.charAt(0).toUpperCase() || ''}
+          </div>
+
+          {/* Dropdown menu */}
+          {showDropdown && (
+            <div ref={dropdownRef}
+              className="absolute right-0 top-12 bg-white shadow-lg rounded-lg py-2 w-40 border border-gray-200 z-50">
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  showAmount();
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-yellow-100 cursor-pointer"
+              >
+                Amount
+              </button>
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  showChart();
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-green-100 cursor-pointer"
+              >
+                Chart
+              </button>
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  logout();
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-red-100 cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {/* File Upload Section */}
-      <div className="bg-transparent rounded shadow-md p-6 mb-8">
+      <div className="bg-transparent rounded shadow-md mt-8 p-6 mb-8">
         <h2 className="bg-red text-2xl font-semibold mb-4 text-center text-red-400">File Upload</h2>
 
         {/* Drag and Drop Area */}
@@ -294,11 +339,11 @@ export default function Dashboard() {
             {uploadedFiles.map((file, index) => (
               <div key={index} className="flex items-center justify-between bg-gray-50 p-4 rounded">
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{}</span>
+                  <span className="text-2xl">{ }</span>
                   <div>
                     <p className="font-medium">{file.name}</p>
                     <p className="text-sm text-gray-500">
-                      {} • Uploaded on {new Date(file.uploaded_at).toLocaleDateString()}
+                      { } • Uploaded on {new Date(file.uploaded_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
