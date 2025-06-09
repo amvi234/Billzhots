@@ -27,7 +27,7 @@ export default function Dashboard() {
   } = useUploadBill();
 
   // States.
-  const [username, setUsername] = useState<string>(''); 
+  const [username, setUsername] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
@@ -40,12 +40,10 @@ export default function Dashboard() {
   // UseEffects.
   useEffect(() => {
     const name = localStorageManager.getName();
-    console.log(name,'here')
     if (!localStorageManager.hasToken()) {
       router.push('/login');
       toast.error('Not allowed to navigate dashboard without login');
     } else if (name) {
-      console.log('whyyyy')
       setUsername(name);
     }
   }, [router]);
@@ -107,7 +105,6 @@ export default function Dashboard() {
 
     files.forEach(file => {
       const error = validateFile(file);
-      console.log(file)
       if (error) {
         errors.push(`${file.name}: ${error}`);
       } else {
