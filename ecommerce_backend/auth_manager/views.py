@@ -16,6 +16,41 @@ class AuthViewSet(ViewSet):
         detail=False,
         methods=["post"],
     )
+    def register(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"meta": {"message": "Username already exists", "status_code": 400}},
+                status=400,
+            )
+
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"meta": {"message": "Email already exists", "status_code": 400}},
+                status=400,
+            )
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
+
+        response = {
+            "meta": {"message": "User Registration is Completed"},
+            "data": {"user": {"username": user.id}},
+        }
+        return Response(response)
+
+    @action(
+        detail=False,
+        methods=["post"],
+    )
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -89,39 +124,4 @@ class AuthViewSet(ViewSet):
             },
         }
 
-        return Response(response)
-
-    @action(
-        detail=False,
-        methods=["post"],
-    )
-    def register(self, request):
-        username = request.data.get("username")
-        email = request.data.get("email")
-        password = request.data.get("password")
-
-        # Check if username already exists
-        if User.objects.filter(username=username).exists():
-            return Response(
-                {"meta": {"message": "Username already exists", "status_code": 400}},
-                status=400,
-            )
-
-        # Check if email already exists
-        if User.objects.filter(email=email).exists():
-            return Response(
-                {"meta": {"message": "Email already exists", "status_code": 400}},
-                status=400,
-            )
-
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-        )
-
-        response = {
-            "meta": {"message": "User Registration is Completed"},
-            "data": {"user": {"username": user.id}},
-        }
         return Response(response)

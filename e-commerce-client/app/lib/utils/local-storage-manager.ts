@@ -16,6 +16,9 @@ export const localStorageManager = {
     removeToken: () => {
         localStorage.removeItem('token');
     },
+    removeName: () => {
+        localStorage.removeItem('name');
+    },
     setRefreshToken: (token: string) => {
         localStorage.setItem('refreshToken', token);
     },

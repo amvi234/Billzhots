@@ -198,6 +198,7 @@ export default function Dashboard() {
   const showAmount = () => {
 
   }
+
   return (
     <div className="container mx-auto p-8">
       <div className="fixed top-0 left-0 right-0 z-50 bg-green-100 shadow-md h-20 px-8 flex justify-between items-center">
@@ -248,7 +249,7 @@ export default function Dashboard() {
         </div>
       </div>
       {/* File Upload Section */}
-      <div className="bg-transparent rounded shadow-md mt-8 p-6 mb-8">
+      <div className="bg-transparent rounded shadow-md mt-12 p-6 mb-8">
         <h2 className="bg-red text-2xl font-semibold mb-4 text-center text-red-400">File Upload</h2>
 
         {/* Drag and Drop Area */}
