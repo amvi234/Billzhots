@@ -328,46 +328,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
-      {/* Uploaded Files Section */}
-      {uploadedFiles.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-4">Uploaded Files</h2>
-          <div className="grid gap-4">
-            {uploadedFiles.map((file, index) => (
-              <div key={index} className="flex items-center justify-between bg-gray-50 p-4 rounded">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{ }</span>
-                  <div>
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-gray-500">
-                      { } • Uploaded on {new Date(file.uploaded_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  {file.url && (
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      View
-                    </a>
-                  )}
-                  <button
-                    onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
