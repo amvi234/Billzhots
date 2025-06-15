@@ -1,5 +1,5 @@
 import api from "../api";
-import { BillPayload, UploadBillResponse } from "./types";
+import { BillIdPayload, BillPayload, UploadBillResponse } from "./types";
 import { ApiErrorResponse, ApiResponse } from "../types";
 import { UploadBillResponseMapper } from "./mapper";
 import { useMutation } from "@tanstack/react-query";
@@ -24,5 +24,15 @@ export const useUploadBill = () => {
     })
 }
 
+const deleteBillRequest = async (
+    payload: BillIdPayload,
+): Promise<ApiResponse> =>
+    await api.delete(`/bill/${payload.billId}/`);
+
+export const useDeleteBill = () =>
+    useMutation<ApiResponse, ApiErrorResponse, BillIdPayload>({
+        mutationFn: async (payload: BillIdPayload) =>
+            deleteBillRequest(payload),
+    })
 
 // hooks for delete, download, list of bills and create google charts - 15 jun 25
