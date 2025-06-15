@@ -43,9 +43,9 @@ const {
   isPending: isDeleting
 } = useDeleteBill();
 
-  // const {
-  //   mutate: downloadBill,
-  // } = useDownloadBill();
+  const {
+    mutate: downloadBill,
+  } = useDownloadBill();
 
   // UseEffects.
   useEffect(() => {
@@ -214,6 +214,10 @@ useEffect(() => {
     return '📁';
   };
 
+  const handleDownload = (billId: string, fileName: string) => {
+
+  }
+
   const showChart = () => {
 
   }
@@ -374,18 +378,15 @@ useEffect(() => {
             </div>
           </div>
           <div className="flex gap-3">
-            <a
-              href={bill.id || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="text-blue-500 hover:text-blue-700"
+            <button
+              onClick={()=>handleDownload(bill.id, bill.name)}
+              className='text-blue-500 hover:text-blue-700 cursor-pointer'
             >
               Download
-            </a>
+              </button>
             <button
               onClick={() =>
-                deleteBill(bill.id, {
+                deleteBill({billId: bill.id}, {
                   onSuccess: () => {
                     toast.success('Bill deleted');
                     refetchBills();

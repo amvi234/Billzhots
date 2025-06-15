@@ -43,7 +43,7 @@ export const downloadBillRequest = async (payload: BillIdPayload): Promise<Blob>
 };
 
 export const useDownloadBill = () => {
-    useMutation<Blob, Error, BillIdPayload>({
+    return useMutation<Blob, Error, BillIdPayload>({
         mutationFn: downloadBillRequest,
     })
 }
