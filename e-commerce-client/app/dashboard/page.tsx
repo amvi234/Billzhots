@@ -4,14 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
-import { useUploadBill } from '../shared/api/bill/bill-api';
+import { useDeleteBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
 import { sendError } from 'next/dist/server/api-utils';
+import { BillPayload } from '../shared/api/bill/types';
 
 export default function Dashboard() {
   // Contexts.
-
   const { logout } = useAuth();
   const router = useRouter();
+
+  // States.
+  const [username, setUsername] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<BillPayload[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const toggleDropdown = () => setShowDropdown(prev => !prev);
+  const [bills, setBills] = useState<BillPayload[]>([]);
 
   // Refs.
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -19,25 +29,39 @@ export default function Dashboard() {
   // Hooks.
   const {
     mutate: sendUploadBill,
-    isPending: isLoadingBillRequest,
-    data: uploadBillRequestResponse,
     isSuccess: isSuccessUploadBillRequest,
-    isError: isErrorUploadBillRequest,
-    error: uploadBillErrorResponse,
   } = useUploadBill();
 
-  // States.
-  const [username, setUsername] = useState<string>('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [dragActive, setDragActive] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const {
+    data: uploadedBillData,
+    refetch: refetchBills,
+    isLoading: isLoadingUploadedBills,
+    isSuccess: isListBillsSuccess,
+    isError: isErrorListBills,
+   error: errListBills,
+} = useListBills();
 
-  const toggleDropdown = () => setShowDropdown(prev => !prev);
-
+const {
+  mutate: deleteBill,
+  isPending: isDeleting
+} = useDeleteBill();
 
   // UseEffects.
+  useEffect(() => {
+    if (isListBillsSuccess && uploadedBillData) {
+      setBills(uploadedBillData.data);
+    }
+    if (isErrorListBills && errListBills) {
+      toast.error('Failed to fetch bills. Please try again later')
+    }
+  }, [isListBillsSuccess, isErrorListBills, uploadedBillData])
+  useEffect(() => {
+  if (isSuccessUploadBillRequest) {
+    refetchBills();
+  }
+}, [isSuccessUploadBillRequest]);
+  
+  
   useEffect(() => {
     const name = localStorageManager.getName();
     if (!localStorageManager.hasToken()) {
@@ -48,7 +72,21 @@ export default function Dashboard() {
     }
   }, [router]);
 
-
+useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+}, []);
+  
   // Constants.
   const ACCEPTED_TYPES = {
     'image/png': '.png',
@@ -80,24 +118,6 @@ export default function Dashboard() {
     const files = Array.from(event.target.files || []);
     processFiles(files);
   };
-
-
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
 
   const processFiles = (files: File[]) => {
     const validFiles: File[] = [];
@@ -152,7 +172,7 @@ export default function Dashboard() {
         return new Promise<void>((resolve, reject) => {
           sendUploadBill(file, {
             onSuccess: (res) => {
-              setUploadedFiles((prev) => [...prev, res.data])
+              // setUploadedFiles((prev) => [...prev, res.data])
               resolve();
             },
             onError: (err) => {
@@ -327,6 +347,64 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+        <div>
+          <div className="bg-white rounded shadow-md mt-12 p-6">
+  <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">
+    Uploaded Bills
+  </h2>
+
+  {isLoadingUploadedBills  ? (
+    <p className="text-center text-gray-500">Loading uploaded bills...</p>
+  ) : bills.length > 0 ? (
+    <div className="space-y-4">
+      {uploadedBillData?.data.map((bill: any, index: number) => (
+        <div
+          key={bill.id}
+          className="flex items-center justify-between border rounded px-4 py-2 bg-gray-50 hover:bg-gray-100"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-xl">
+              {getFileIcon(bill.mime_type || bill.content_type || '')}
+            </span>
+            <div>
+              <p className="font-semibold">{bill.name || bill.file_name}</p>
+              <p className="text-sm text-gray-500">{formatFileSize(bill.size || 0)}</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <a
+              href={bill.file_url || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="text-blue-500 hover:text-blue-700"
+            >
+              Download
+            </a>
+            <button
+              onClick={() =>
+                deleteBill(bill.id, {
+                  onSuccess: () => {
+                    toast.success('Bill deleted');
+                    refetchBills();
+                  },
+                  onError: () => toast.error('Failed to delete bill'),
+                })
+              }
+              disabled={isDeleting}
+              className="text-red-500 hover:text-red-700 disabled:opacity-50"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-center text-gray-400">No bills uploaded yet.</p>
+  )}
+</div>
+      </div>
       </div>
     </div>
   );
