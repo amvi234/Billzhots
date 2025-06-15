@@ -43,7 +43,7 @@ class BillViewSet(ViewSet):
         )
 
     def list(self, request):
-        bills = Bill.objects.filter(created_by=request.user).order("-created_by")
+        bills = Bill.objects.filter(created_by=request.user)
         serializer = BillSerializer(bills, many=True)
         return Response(
             {

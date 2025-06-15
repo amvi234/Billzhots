@@ -30,6 +30,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=35),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
+}
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",

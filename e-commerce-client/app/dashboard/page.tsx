@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
-import { useDeleteBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
-import { sendError } from 'next/dist/server/api-utils';
-import { BillPayload } from '../shared/api/bill/types';
+import { useDeleteBill, useDownloadBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
 
 export default function Dashboard() {
   // Contexts.
@@ -17,11 +15,10 @@ export default function Dashboard() {
   const [username, setUsername] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<BillPayload[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const toggleDropdown = () => setShowDropdown(prev => !prev);
-  const [bills, setBills] = useState<BillPayload[]>([]);
+  const [bills, setBills] = useState<any>([]);
 
   // Refs.
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,22 +43,28 @@ const {
   isPending: isDeleting
 } = useDeleteBill();
 
+  // const {
+  //   mutate: downloadBill,
+  // } = useDownloadBill();
+
   // UseEffects.
   useEffect(() => {
     if (isListBillsSuccess && uploadedBillData) {
-      setBills(uploadedBillData.data);
+      console.log(uploadedBillData);
+
+      setBills(uploadedBillData);
     }
     if (isErrorListBills && errListBills) {
       toast.error('Failed to fetch bills. Please try again later')
     }
-  }, [isListBillsSuccess, isErrorListBills, uploadedBillData])
+  }, [isListBillsSuccess, isErrorListBills,uploadedBillData])
+
   useEffect(() => {
   if (isSuccessUploadBillRequest) {
     refetchBills();
   }
 }, [isSuccessUploadBillRequest]);
-  
-  
+
   useEffect(() => {
     const name = localStorageManager.getName();
     if (!localStorageManager.hasToken()) {
@@ -86,7 +89,7 @@ useEffect(() => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
 }, []);
-  
+
   // Constants.
   const ACCEPTED_TYPES = {
     'image/png': '.png',
@@ -218,7 +221,7 @@ useEffect(() => {
   const showAmount = () => {
 
   }
-
+  console.log(bills.id)
   return (
     <div className="container mx-auto p-8">
       <div className="fixed top-0 left-0 right-0 z-50 bg-green-100 shadow-md h-20 px-8 flex justify-between items-center">
@@ -355,25 +358,24 @@ useEffect(() => {
 
   {isLoadingUploadedBills  ? (
     <p className="text-center text-gray-500">Loading uploaded bills...</p>
-  ) : bills.length > 0 ? (
+  ) : bills?.length > 0 ? (
     <div className="space-y-4">
-      {uploadedBillData?.data.map((bill: any, index: number) => (
+      {bills?.map((bill: any) => (
         <div
           key={bill.id}
           className="flex items-center justify-between border rounded px-4 py-2 bg-gray-50 hover:bg-gray-100"
         >
           <div className="flex items-center gap-4">
             <span className="text-xl">
-              {getFileIcon(bill.mime_type || bill.content_type || '')}
+              {getFileIcon(bill.content_type || '')}
             </span>
             <div>
-              <p className="font-semibold">{bill.name || bill.file_name}</p>
-              <p className="text-sm text-gray-500">{formatFileSize(bill.size || 0)}</p>
+              <p className="font-semibold">{bill.name}</p>
             </div>
           </div>
           <div className="flex gap-3">
             <a
-              href={bill.file_url || '#'}
+              href={bill.id || '#'}
               target="_blank"
               rel="noopener noreferrer"
               download
@@ -392,7 +394,7 @@ useEffect(() => {
                 })
               }
               disabled={isDeleting}
-              className="text-red-500 hover:text-red-700 disabled:opacity-50"
+              className="text-red-500 hover:text-red-700 disabled:opacity-50 cursor-pointer"
             >
               Delete
             </button>
