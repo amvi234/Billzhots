@@ -2,7 +2,7 @@ import api from "../api";
 import { BillIdPayload, BillPayload, UploadBillResponse } from "./types";
 import { ApiErrorResponse, ApiResponse } from "../types";
 import { UploadBillResponseMapper } from "./mapper";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const uploadBill = async (
     file: File,
@@ -35,4 +35,26 @@ export const useDeleteBill = () =>
             deleteBillRequest(payload),
     })
 
-// hooks for delete, download, list of bills and create google charts - 15 jun 25
+export const downloadBillRequest = async (payload: BillIdPayload): Promise<Blob> => {
+    const res = await api.get<Blob>(`/bill/${payload.billId}/`, {
+        responseType: 'blob',
+    });
+    return res.data;
+};
+
+export const useDownloadBill = () => {
+    useMutation<Blob, Error, BillIdPayload>({
+        mutationFn: downloadBillRequest,
+    })
+}
+
+export const listBillsRequest = async (): Promise<ApiResponse<BillPayload[]>> => {
+    const res = await api.get<ApiResponse<BillPayload[]>>('/bill/');
+    return res.data;
+}
+
+export const useListBills = () =>
+    useQuery<ApiResponse<BillPayload[]>>({
+        queryKey: ["bills"],
+        queryFn: listBillsRequest,
+    })
