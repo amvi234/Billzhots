@@ -35,15 +35,15 @@ export const useDeleteBill = () =>
             deleteBillRequest(payload),
     })
 
-export const downloadBillRequest = async (payload: BillIdPayload): Promise<Blob> => {
+export const downloadBillRequest = async (payload: BillIdPayload): Promise<any> => {
     const res = await api.get<Blob>(`/bill/${payload.billId}/`, {
         responseType: 'blob',
     });
-    return res.data;
+    return res;
 };
 
 export const useDownloadBill = () => {
-    return useMutation<Blob, Error, BillIdPayload>({
+    return useMutation<any, Error, BillIdPayload>({
         mutationFn: downloadBillRequest,
     })
 }

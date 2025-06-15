@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
+import FileSaver from 'file-saver';
 import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
 import { useDeleteBill, useDownloadBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
@@ -45,13 +46,14 @@ export default function Dashboard() {
 
   const {
     mutate: downloadBill,
+    data: downloadBillResponse,
+    isSuccess: isSuccessDownloadBill,
+    isError: isErrorDownloadBill,
   } = useDownloadBill();
 
   // UseEffects.
   useEffect(() => {
     if (isListBillsSuccess && uploadedBillData) {
-      console.log(uploadedBillData);
-
       setBills(uploadedBillData);
     }
     if (isErrorListBills && errListBills) {
@@ -60,10 +62,16 @@ export default function Dashboard() {
   }, [isListBillsSuccess, isErrorListBills, uploadedBillData])
 
   useEffect(() => {
-    if (isSuccessUploadBillRequest) {
-      refetchBills();
+    if (isSuccessDownloadBill && downloadBillResponse) {
+      FileSaver.saveAs(downloadBillResponse, 'bill');
+      toast.success('Bill downloaded successfully');
     }
-  }, [isSuccessUploadBillRequest]);
+
+    if (isErrorDownloadBill) {
+      toast.error('Failed to download bill');
+    }
+  }, [isSuccessDownloadBill, downloadBillResponse, isErrorDownloadBill]);
+
 
   useEffect(() => {
     const name = localStorageManager.getName();
@@ -214,20 +222,8 @@ export default function Dashboard() {
     return '📁';
   };
 
-  const handleDownloadBill = (billId: string, fileName: string) => {
-    downloadBill({ billId }, {
-      onSuccess: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode?.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      },
-      onError: () => toast.error('Failed to download bill'),
-    });
+  const handleDownloadBill = (billId: string) => {
+    downloadBill({ billId });
   };
 
   const showChart = () => {
@@ -390,12 +386,12 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex gap-3">
-                      <button
-                        onClick={() => handleDownloadBill(bill.id, bill.name)}
-                        className='text-blue-500 hover:text-blue-700 cursor-pointer'
-                      >
-                        Download
-                      </button>
+                    <button
+                      onClick={() => handleDownloadBill(bill.id)}
+                      className='text-blue-500 hover:text-blue-700 cursor-pointer'
+                    >
+                      Download
+                    </button>
                       <button
                         onClick={() =>
                           deleteBill({ billId: bill.id }, {
