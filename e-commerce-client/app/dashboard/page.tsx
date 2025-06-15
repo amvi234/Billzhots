@@ -35,13 +35,13 @@ export default function Dashboard() {
     isLoading: isLoadingUploadedBills,
     isSuccess: isListBillsSuccess,
     isError: isErrorListBills,
-   error: errListBills,
-} = useListBills();
+    error: errListBills,
+  } = useListBills();
 
-const {
-  mutate: deleteBill,
-  isPending: isDeleting
-} = useDeleteBill();
+  const {
+    mutate: deleteBill,
+    isPending: isDeleting
+  } = useDeleteBill();
 
   const {
     mutate: downloadBill,
@@ -57,13 +57,13 @@ const {
     if (isErrorListBills && errListBills) {
       toast.error('Failed to fetch bills. Please try again later')
     }
-  }, [isListBillsSuccess, isErrorListBills,uploadedBillData])
+  }, [isListBillsSuccess, isErrorListBills, uploadedBillData])
 
   useEffect(() => {
-  if (isSuccessUploadBillRequest) {
-    refetchBills();
-  }
-}, [isSuccessUploadBillRequest]);
+    if (isSuccessUploadBillRequest) {
+      refetchBills();
+    }
+  }, [isSuccessUploadBillRequest]);
 
   useEffect(() => {
     const name = localStorageManager.getName();
@@ -75,7 +75,7 @@ const {
     }
   }, [router]);
 
-useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -88,7 +88,7 @@ useEffect(() => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-}, []);
+  }, []);
 
   // Constants.
   const ACCEPTED_TYPES = {
@@ -214,9 +214,21 @@ useEffect(() => {
     return '📁';
   };
 
-  const handleDownload = (billId: string, fileName: string) => {
-
-  }
+  const handleDownloadBill = (billId: string, fileName: string) => {
+    downloadBill({ billId }, {
+      onSuccess: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      onError: () => toast.error('Failed to download bill'),
+    });
+  };
 
   const showChart = () => {
 
@@ -225,7 +237,7 @@ useEffect(() => {
   const showAmount = () => {
 
   }
-  console.log(bills.id)
+
   return (
     <div className="container mx-auto p-8">
       <div className="fixed top-0 left-0 right-0 z-50 bg-green-100 shadow-md h-20 px-8 flex justify-between items-center">
@@ -356,58 +368,58 @@ useEffect(() => {
         )}
         <div>
           <div className="bg-white rounded shadow-md mt-12 p-6">
-  <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">
-    Uploaded Bills
-  </h2>
+            <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">
+              Uploaded Bills
+            </h2>
 
-  {isLoadingUploadedBills  ? (
-    <p className="text-center text-gray-500">Loading uploaded bills...</p>
-  ) : bills?.length > 0 ? (
-    <div className="space-y-4">
-      {bills?.map((bill: any) => (
-        <div
-          key={bill.id}
-          className="flex items-center justify-between border rounded px-4 py-2 bg-gray-50 hover:bg-gray-100"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-xl">
-              {getFileIcon(bill.content_type || '')}
-            </span>
-            <div>
-              <p className="font-semibold">{bill.name}</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={()=>handleDownload(bill.id, bill.name)}
-              className='text-blue-500 hover:text-blue-700 cursor-pointer'
-            >
-              Download
-              </button>
-            <button
-              onClick={() =>
-                deleteBill({billId: bill.id}, {
-                  onSuccess: () => {
-                    toast.success('Bill deleted');
-                    refetchBills();
-                  },
-                  onError: () => toast.error('Failed to delete bill'),
-                })
-              }
-              disabled={isDeleting}
-              className="text-red-500 hover:text-red-700 disabled:opacity-50 cursor-pointer"
-            >
-              Delete
-            </button>
+            {isLoadingUploadedBills ? (
+              <p className="text-center text-gray-500">Loading uploaded bills...</p>
+            ) : bills?.length > 0 ? (
+              <div className="space-y-4">
+                {bills?.map((bill: any) => (
+                  <div
+                    key={bill.id}
+                    className="flex items-center justify-between border rounded px-4 py-2 bg-gray-50 hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-xl">
+                        {getFileIcon(bill.content_type || '')}
+                      </span>
+                      <div>
+                        <p className="font-semibold">{bill.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleDownloadBill(bill.id, bill.name)}
+                        className='text-blue-500 hover:text-blue-700 cursor-pointer'
+                      >
+                        Download
+                      </button>
+                      <button
+                        onClick={() =>
+                          deleteBill({ billId: bill.id }, {
+                            onSuccess: () => {
+                              toast.success('Bill deleted');
+                              refetchBills();
+                            },
+                            onError: () => toast.error('Failed to delete bill'),
+                          })
+                        }
+                        disabled={isDeleting}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-50 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-400">No bills uploaded yet.</p>
+            )}
           </div>
         </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-center text-gray-400">No bills uploaded yet.</p>
-  )}
-</div>
-      </div>
       </div>
     </div>
   );
