@@ -56,7 +56,6 @@ class BillViewSet(ViewSet):
         bill = Bill.objects.get(id=pk)
         response = HttpResponse(bill.data, content_type=bill.content_type)
         response["Content-Disposition"] = f'attachment; filename="{bill.name}"'
-        print(response)
         return response
 
     def destroy(self, request, pk=None):

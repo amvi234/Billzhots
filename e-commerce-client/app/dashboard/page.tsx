@@ -7,6 +7,13 @@ import { localStorageManager } from '../lib/utils';
 import { toast } from 'react-toastify';
 import { useDeleteBill, useDownloadBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
 
+// Interface.
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 export default function Dashboard() {
   // Contexts.
   const { logout } = useAuth();
@@ -18,16 +25,18 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const toggleDropdown = () => setShowDropdown(prev => !prev);
+  const [showChart, setShowChart] = useState(false);
+  const [chartLoaded, setChartLoaded] = useState(false);
   const [bills, setBills] = useState<any>([]);
+  const toggleDropdown = () => setShowDropdown(prev => !prev);
 
   // Refs.
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const chartModalRef = useRef<HTMLDivElement>(null);
 
   // Hooks.
   const {
     mutate: sendUploadBill,
-    isSuccess: isSuccessUploadBillRequest,
   } = useUploadBill();
 
   const {
@@ -52,6 +61,29 @@ export default function Dashboard() {
   } = useDownloadBill();
 
   // UseEffects.
+  useEffect(() => {
+    const loadChart = () => {
+      if (typeof window !== 'undefined' && !window.google) {
+        const script = document.createElement('script');
+        script.src = 'https://www.gstatic.com/charts/loader.js';
+        script.onload = () => {
+          window.google.charts.load('current', { packages: ['corechart'] });
+          window.google.charts.setOnLoadCallback(() => {
+            setChartLoaded(true);
+          });
+        };
+        document.head.appendChild(script);
+      }
+      else if (window.google) {
+        window.google.charts.load('current', { packages: ['corechart'] });
+        window.google.charts.setOnLoadCallback(() => {
+          setChartLoaded(true);
+        })
+      }
+    };
+    loadChart();
+  }, [])
+
   useEffect(() => {
     if (isListBillsSuccess && uploadedBillData) {
       setBills(uploadedBillData);
@@ -97,6 +129,22 @@ export default function Dashboard() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const handleChartModalClickOutside = (event: MouseEvent) => {
+      if (chartModalRef.current &&
+        !chartModalRef.current.contains(event.target as Node)
+        && showChart) {
+        setShowChart(false);
+      }
+    };
+    if (showChart) {
+      document.addEventListener('mousedown', handleChartModalClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleChartModalClickOutside);
+    }
+  }, [showChart]);
 
   // Constants.
   const ACCEPTED_TYPES = {
@@ -226,7 +274,7 @@ export default function Dashboard() {
     downloadBill({ billId });
   };
 
-  const showChart = () => {
+  const handleShowChart = () => {
 
   }
 
@@ -264,7 +312,7 @@ export default function Dashboard() {
               <button
                 onClick={() => {
                   setShowDropdown(false);
-                  showChart();
+                  handleShowChart();
                 }}
                 className="w-full text-left px-4 py-2 hover:bg-green-100 cursor-pointer"
               >
