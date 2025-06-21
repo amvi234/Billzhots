@@ -49,7 +49,7 @@ const LogInPage = () => {
       setOtpSecret(loginRequestResponse.data.otp_secret)
     }
     if (isErrorLoginRequest && loginErrorResponse) {
-      toast.error(loginErrorResponse.meta.message);
+      toast.error(loginErrorResponse.meta?.message);
     }
   }, [isSuccessLoginRequest, isErrorLoginRequest])
 
