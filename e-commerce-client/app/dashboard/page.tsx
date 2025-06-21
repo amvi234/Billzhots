@@ -157,6 +157,78 @@ export default function Dashboard() {
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
+  // Chart data preparation
+  const getFileTypeDistribution = () => {
+    if (!bills || bills.length === 0) return [];
+
+    const typeCount: { [key: string]: number } = {};
+    
+    bills.forEach((bill: any) => {
+      const contentType = bill.content_type || 'unknown';
+      let fileType = 'Other';
+      
+      if (contentType.includes('image')) {
+        fileType = 'Images';
+      } else if (contentType.includes('pdf')) {
+        fileType = 'PDF';
+      } else if (contentType.includes('word') || contentType.includes('document')) {
+        fileType = 'Documents';
+      }
+      
+      typeCount[fileType] = (typeCount[fileType] || 0) + 1;
+    });
+
+    return Object.entries(typeCount).map(([type, count]) => [type, count]);
+  };
+
+  const drawChart = () => {
+    if (!chartLoaded || !window.google || !bills || bills.length === 0) return;
+
+    const data = new window.google.visualization.DataTable();
+    data.addColumn('string', 'File Type');
+    data.addColumn('number', 'Count');
+
+    const chartData = getFileTypeDistribution();
+    data.addRows(chartData);
+
+    const options = {
+      title: 'Distribution of Uploaded File Types',
+      titleTextStyle: {
+        fontSize: 18,
+        bold: true,
+        color: '#333'
+      },
+      pieHole: 0.4,
+      colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+      backgroundColor: 'white',
+      chartArea: {
+        left: 50,
+        top: 50,
+        width: '80%',
+        height: '70%'
+      },
+      legend: {
+        position: 'bottom',
+        textStyle: {
+          fontSize: 12
+        }
+      }
+    };
+
+    const chart = new window.google.visualization.PieChart(
+      document.getElementById('file-type-chart')
+    );
+    chart.draw(data, options);
+  };
+
+  // Draw chart when modal opens and data is ready
+  useEffect(() => {
+    if (showChart && chartLoaded && bills.length > 0) {
+      // Small delay to ensure the DOM element is rendered
+      setTimeout(drawChart, 100);
+    }
+  }, [showChart, chartLoaded, bills]);
+
   // Handlers.
   const validateFile = (file: File) => {
     // Check file type.
@@ -275,7 +347,11 @@ export default function Dashboard() {
   };
 
   const handleShowChart = () => {
-
+    if (bills.length === 0) {
+          toast.info('No bills uploaded yet. Upload some files to see the chart.');
+          return;
+        }
+    setShowChart(true);
   }
 
   const showAmount = () => {
@@ -331,6 +407,33 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+        {/* Chart Modal */}
+      {showChart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div 
+            ref={chartModalRef}
+            className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-auto"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-800">File Type Distribution</h3>
+              <button
+                onClick={() => setShowChart(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            {bills.length > 0 ? (
+              <div id="file-type-chart" style={{ width: '100%', height: '400px' }}></div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No data available. Upload some files to see the chart.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {/* File Upload Section */}
       <div className="bg-transparent rounded shadow-md mt-12 p-6 mb-8">
         <h2 className="bg-red text-2xl font-semibold mb-4 text-center text-red-400">File Upload</h2>
