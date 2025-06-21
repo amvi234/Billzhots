@@ -11,10 +11,10 @@ declare module '@tanstack/react-query' {
     defaultSuccess: ApiResponse;
   }
 }
-const BACKEND_URL ='http://localhost:8000';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const api = axios.create({
-    baseURL: BACKEND_URL,
+    baseURL: apiBaseUrl,
     withCredentials: false,
     headers: {
       'Content-Type': 'application/json',
