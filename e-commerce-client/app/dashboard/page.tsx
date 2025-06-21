@@ -152,7 +152,6 @@ export default function Dashboard() {
     'image/jpeg': '.jpeg',
     'image/jpg': '.jpg',
     'application/pdf': '.pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
   };
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -162,21 +161,26 @@ export default function Dashboard() {
     if (!bills || bills.length === 0) return [];
 
     const typeCount: { [key: string]: number } = {};
-    
+    console.log(bills)
+
     bills.forEach((bill: any) => {
-      const contentType = bill.content_type || 'unknown';
+      const contentType = bill.name || 'unknown';
+      console.log(bill.content_type)
       let fileType = 'Other';
-      
-      if (contentType.includes('image')) {
-        fileType = 'Images';
+
+      if (contentType.includes('jpg')) {
+        fileType = 'JPG';
+      } else if (contentType.includes('jpeg')) {
+        fileType = 'JPEG';
+      } else if (contentType.includes('png')) {
+        fileType = 'PNG';
       } else if (contentType.includes('pdf')) {
         fileType = 'PDF';
-      } else if (contentType.includes('word') || contentType.includes('document')) {
-        fileType = 'Documents';
       }
-      
+
       typeCount[fileType] = (typeCount[fileType] || 0) + 1;
     });
+    console.log(typeCount)
 
     return Object.entries(typeCount).map(([type, count]) => [type, count]);
   };
@@ -233,7 +237,7 @@ export default function Dashboard() {
   const validateFile = (file: File) => {
     // Check file type.
     if (!Object.keys(ACCEPTED_TYPES).includes(file.type)) {
-      return `File type ${file.type} is not supported. Only PNG, JPG, JPEG, PDF, and DOCX files are allowed.`;
+      return `File type ${file.type} is not supported. Only PNG, JPG, JPEG, and PDF files are allowed.`;
     }
 
     // Check file size.
@@ -410,7 +414,7 @@ export default function Dashboard() {
         {/* Chart Modal */}
       {showChart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div 
+          <div
             ref={chartModalRef}
             className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-auto"
           >
@@ -418,12 +422,12 @@ export default function Dashboard() {
               <h3 className="text-xl font-semibold text-gray-800">File Type Distribution</h3>
               <button
                 onClick={() => setShowChart(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold cursor-pointer"
               >
                 ×
               </button>
             </div>
-            
+
             {bills.length > 0 ? (
               <div id="file-type-chart" style={{ width: '100%', height: '400px' }}></div>
             ) : (
@@ -458,7 +462,7 @@ export default function Dashboard() {
             <input
               type="file"
               multiple
-              accept=".png,.jpg,.jpeg,.pdf,.docx"
+              accept=".png,.jpg,.jpeg,.pdf"
               onChange={handleFileSelect}
               className="hidden"
               id="file-input"
@@ -470,7 +474,7 @@ export default function Dashboard() {
               Select Files
             </label>
             <p className="text-sm">
-              Supported formats: PNG, JPG, JPEG, PDF, DOCX (Max size: 10MB each)
+              Supported formats: PNG, JPG, JPEG, PDF (Max size: 10MB each)
             </p>
           </div>
         </div>
