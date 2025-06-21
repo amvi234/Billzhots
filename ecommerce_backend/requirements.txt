@@ -28,3 +28,4 @@ django-cors-headers==4.4.0
 phonenumbers==9.0.1
 django-soft-delete==0.9.21
 pre-commit===3.5.0
+psycopg2-binary>=2.9
