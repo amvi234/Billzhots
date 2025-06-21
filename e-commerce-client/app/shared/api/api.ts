@@ -2,8 +2,8 @@ import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ApiErrorType } from './enums';
 import { ApiErrorResponse, ApiResponse, RefreshTokenResponse } from './types';
-import { localStorageManager } from '@/app/lib/utils';
 import { logout } from './helpers';
+import { localStorageManager } from '@/app/lib/utils';
 
 declare module '@tanstack/react-query' {
   interface Register {

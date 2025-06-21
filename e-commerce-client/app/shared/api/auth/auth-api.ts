@@ -6,7 +6,7 @@ import { LoginPayload, LoginResponse, RegisterPayload, VerifyOtpPayload, VerifyO
 
 export const registerRequest = async (
   payload: RegisterPayload,
-): Promise<ApiResponse<{}>> => {
+): Promise<ApiResponse<object>> => {
   const res = await api.post<any, ApiResponse>('auth/register/', payload);
   res.data = registerResponseMapper(res)
   return res;
@@ -39,6 +39,6 @@ export const useVerifyOtpRequest = () =>
   })
 
 export const useRegisterRequest =() => (
-  useMutation<ApiResponse<{}>, ApiErrorResponse, any>({
+  useMutation<ApiResponse<object>, ApiErrorResponse, any>({
     mutationFn: async (payload: RegisterPayload) => registerRequest(payload),
   }));

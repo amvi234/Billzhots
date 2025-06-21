@@ -1,8 +1,8 @@
-import api from "../api";
-import { BillIdPayload, BillPayload, UploadBillResponse } from "./types";
-import { ApiErrorResponse, ApiResponse } from "../types";
-import { UploadBillResponseMapper } from "./mapper";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import api from "../api";
+import { ApiErrorResponse, ApiResponse } from "../types";
+import { BillIdPayload, BillPayload, UploadBillResponse } from "./types";
+import { UploadBillResponseMapper } from "./mapper";
 
 export const uploadBill = async (
     file: File,

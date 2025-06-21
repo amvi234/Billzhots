@@ -1,12 +1,10 @@
 
 "use client"
 import React, { useEffect, useState } from 'react';
-import { useLoginRequest, useVerifyOtpRequest } from '@/app/shared/api/auth/auth-api';
-import { useRouter } from 'next/navigation';
-import QRCode from 'react-qr-code'
 import { toast } from 'react-toastify';
-import { localStorageManager } from '@/app/lib/utils';
-import { useAuth } from '@/app/providers';
+import QRCode from 'react-qr-code'
+import { useRouter } from 'next/navigation';
+import { useLoginRequest, useVerifyOtpRequest } from '@/app/shared/api/auth/auth-api';
 
 const LogInPage = () => {
   // Contexts.
@@ -36,7 +34,6 @@ const LogInPage = () => {
   const {
     mutate: verifyLoginOtpRequest,
     isSuccess: isSuccessVerifyOtpRequest,
-    data: verifyOtpRequestResponse,
     isPending: isLoadingVerifyRequest,
     isError: isErrorVerifyOtp,
     error: errorVerifyOtp,
@@ -132,7 +129,7 @@ const LogInPage = () => {
                       onClick={() => setHasScanned(true)}
                       className="w-full cursor-pointer py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     >
-                      I've scanned the QR code
+                      I have scanned the QR code
                     </button>
                   </div>
                 ) :

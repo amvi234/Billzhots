@@ -1,10 +1,10 @@
 "use client"
 import { useRouter } from 'next/navigation';
+import FileSaver from 'file-saver';
+import { toast } from 'react-toastify';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
-import FileSaver from 'file-saver';
 import { localStorageManager } from '../lib/utils';
-import { toast } from 'react-toastify';
 import { useDeleteBill, useDownloadBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
 
 // Interface.
@@ -158,7 +158,9 @@ export default function Dashboard() {
 
   // Chart data preparation
   const getFileTypeDistribution = () => {
-    if (!bills || bills.length === 0) return [];
+    if (!bills || bills.length === 0) {
+      return [];
+    }
 
     const typeCount: { [key: string]: number } = {};
     console.log(bills)
@@ -186,7 +188,9 @@ export default function Dashboard() {
   };
 
   const drawChart = () => {
-    if (!chartLoaded || !window.google || !bills || bills.length === 0) return;
+    if (!chartLoaded || !window.google || !bills || bills.length === 0) {
+      return;
+  }
 
     const data = new window.google.visualization.DataTable();
     data.addColumn('string', 'File Type');
@@ -300,13 +304,13 @@ export default function Dashboard() {
 
   // Upload files function
   const uploadFiles = async () => {
-    if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0) { return };
     setUploading(true);
     try {
       const uploadPromises = selectedFiles.map(async (file) => {
         return new Promise<void>((resolve, reject) => {
           sendUploadBill(file, {
-            onSuccess: (res) => {
+            onSuccess: () => {
               // setUploadedFiles((prev) => [...prev, res.data])
               resolve();
             },
@@ -322,7 +326,7 @@ export default function Dashboard() {
       toast.success('Bill(s) uploaded successfully')
     }
     catch (error) {
-      console.warn('Some files failed to upload');
+      console.warn(`Some files failed to upload ${error}`);
     }
     finally {
       setUploading(false);
@@ -331,7 +335,7 @@ export default function Dashboard() {
 
   // Format file size.
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) { return '0 Bytes' };
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -340,10 +344,10 @@ export default function Dashboard() {
 
   // Get file icon based on type.
   const getFileIcon = (type: string) => {
-    if (type.includes('image')) return '🖼️';
-    if (type.includes('pdf')) return '📄';
-    if (type.includes('word')) return '📝';
-    return '📁';
+    if (type.includes('image')) { return '🖼️' };
+    if (type.includes('pdf')) {return '📄'};
+    if (type.includes('word')) {return '📝'};
+    {return '📁'};
   };
 
   const handleDownloadBill = (billId: string) => {

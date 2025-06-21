@@ -1,8 +1,8 @@
 "use client"
-import React, { useEffect, useState } from 'react';
-import { useRegisterRequest } from '@/app/shared/api/auth/auth-api';
 import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useRegisterRequest } from '@/app/shared/api/auth/auth-api';
 
 const RegisterPage = () => {
   // States
