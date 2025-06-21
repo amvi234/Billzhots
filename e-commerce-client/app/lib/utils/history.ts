@@ -1,4 +1,5 @@
 import { createBrowserHistory, BrowserHistory } from 'history';
+
 let history: BrowserHistory | null = null;
 
 if (typeof window !== 'undefined') {

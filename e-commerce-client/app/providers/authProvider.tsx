@@ -1,9 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { history, localStorageManager } from '@/app/lib/utils';
-import { set } from 'lodash';
 
 type AuthContextType = {
   isAuthenticated: boolean;
