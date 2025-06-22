@@ -58,15 +58,13 @@ export const useListBills = () =>
         queryKey: ["bills"],
         queryFn: listBillsRequest,
     })
-
-    export const getTotalAmountRequest = async (): Promise<ApiResponse<TotalAmountResponse>> => {
+export const getTotalAmountRequest = async (): Promise<ApiResponse<TotalAmountResponse>> => {
     const res = await api.get<ApiResponse<TotalAmountResponse>>('/bill/total_amount/');
     return res.data;
-}
-
+    }
 export const useGetTotalAmount = () =>
-    useQuery<ApiResponse<TotalAmountResponse>>({
-        queryKey: ["total-amount"],
-        queryFn: getTotalAmountRequest,
-        enabled: false, // Only fetch when explicitly called
-    })
+    useQuery<any>({
+    queryKey: ["total-amount"],
+    queryFn: getTotalAmountRequest,
+    enabled: false, // Only fetch when explicitly called
+     })

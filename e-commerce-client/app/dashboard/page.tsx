@@ -65,11 +65,7 @@ export default function Dashboard() {
   } = useDownloadBill();
 
   const {
-  data: totalAmountData,
   refetch: refetchTotalAmount,
-  isLoading: isLoadingTotalAmount,
-  isSuccess: isSuccessTotalAmount,
-  isError: isErrorTotalAmount,
 } = useGetTotalAmount();
 
   // UseEffects.
@@ -264,16 +260,6 @@ export default function Dashboard() {
       setTimeout(drawChart, 100);
     }
   }, [showChart, chartLoaded, bills]);
-  useEffect(() => {
-  if (isSuccessTotalAmount && totalAmountData?.data) {
-    setTotalAmount(totalAmountData.data.total_amount);
-    setShowAmountModal(true);
-  }
-  
-  if (isErrorTotalAmount) {
-    toast.error('Failed to fetch total amount');
-  }
-}, [isSuccessTotalAmount, totalAmountData, isErrorTotalAmount]);
 
 // Add amount modal click outside handler
 useEffect(() => {
@@ -418,13 +404,22 @@ useEffect(() => {
     setShowChart(true);
   }
 
-  const showAmount = () => {
-  if (bills.length === 0) {
-    toast.info('No bills uploaded yet. Upload some files to see the total amount.');
-    return;
-  }
-  refetchTotalAmount();
-};
+  const showAmount = async () => {
+    if (bills.length === 0) {
+      toast.info('No bills uploaded yet. Upload some files to see the total amount.');
+      return;
+    }
+
+    try {
+      const result = await refetchTotalAmount();
+      if (result.data) {
+        setTotalAmount(result.data.total_amount);
+        setShowAmountModal(true);
+      }
+    } catch (error) {
+      toast.error('Failed to fetch total amount');
+    }
+  };
 
 
 

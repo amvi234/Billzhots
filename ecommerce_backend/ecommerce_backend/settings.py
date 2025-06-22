@@ -25,8 +25,6 @@ ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-GEMINI_API_KEY='AIzaSyBlfzA_i_L5v_-GNeMEKeqGYtYNrD5GWwI'
-
 from datetime import timedelta
 
 SIMPLE_JWT = {

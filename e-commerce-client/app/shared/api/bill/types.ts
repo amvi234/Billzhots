@@ -16,5 +16,4 @@ export type BillIdPayload = {
 export type TotalAmountResponse = {
     total_amount: number;
     bills_count: number;
-    bills_with_amounts: number;
 }
