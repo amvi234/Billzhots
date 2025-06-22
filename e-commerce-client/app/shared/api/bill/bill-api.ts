@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { ApiErrorResponse, ApiResponse } from "../types";
-import { BillIdPayload, BillPayload, UploadBillResponse } from "./types";
+import { BillIdPayload, BillPayload, TotalAmountResponse, UploadBillResponse } from "./types";
 import { UploadBillResponseMapper } from "./mapper";
 
 export const uploadBill = async (
@@ -57,4 +57,16 @@ export const useListBills = () =>
     useQuery<ApiResponse<BillPayload[]>>({
         queryKey: ["bills"],
         queryFn: listBillsRequest,
+    })
+
+    export const getTotalAmountRequest = async (): Promise<ApiResponse<TotalAmountResponse>> => {
+    const res = await api.get<ApiResponse<TotalAmountResponse>>('/bill/total_amount/');
+    return res.data;
+}
+
+export const useGetTotalAmount = () =>
+    useQuery<ApiResponse<TotalAmountResponse>>({
+        queryKey: ["total-amount"],
+        queryFn: getTotalAmountRequest,
+        enabled: false, // Only fetch when explicitly called
     })

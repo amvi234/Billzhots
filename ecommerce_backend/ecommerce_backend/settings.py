@@ -25,7 +25,7 @@ ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY='AIzaSyBlfzA_i_L5v_-GNeMEKeqGYtYNrD5GWwI'
 
 from datetime import timedelta
 

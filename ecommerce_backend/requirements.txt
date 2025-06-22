@@ -21,6 +21,8 @@ razorpay==1.4.2
 requests==2.32.3
 setuptools==75.3.2
 sqlparse==0.5.3
+google-generativeai==0.3.2
+Pillow==10.4.0
 typing_extensions==4.12.2
 urllib3==2.2.3
 uvicorn==0.27.0

@@ -1,5 +1,10 @@
 # Create your views here.
+import google.generativeai as genai
+import re
+from PIL import Image
+import io
 from bill_manager.models import Bill
+from django.conf import settings
 from bill_manager.serializers import BillSerializer
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -11,6 +16,43 @@ from rest_framework.viewsets import ViewSet
 
 class BillViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configure Gemini AI
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
+
+
+    def extract_amount(self, image_data, content_type):
+        """Extract total amount from bill image using Gemini AI"""
+        try:
+            # Convert image data to PIL Image
+            image = Image.open(io.BytesIO(image_data))
+            
+            prompt = """
+            Analyze this bill/receipt image and extract the total amount. 
+            Look for terms like "Total", "Amount", "Grand Total", "Net Amount", etc.
+            Return only the numeric value (without currency symbols) as a float.
+            If multiple amounts are present, return the final total amount.
+            If no amount can be found, return 0.
+            """
+            
+            response = self.model.generate_content([prompt, image])
+            
+            # Extract numeric value from response
+            amount_text = response.text.strip()
+            # Use regex to find the first number (including decimals)
+            amount_match = re.search(r'\d+\.?\d*', amount_text)
+            
+            if amount_match:
+                return float(amount_match.group())
+            return 0.0
+            
+        except Exception as e:
+            print(f"Error extracting amount: {e}")
+            return 0.0
+
 
     @action(
         detail=False,

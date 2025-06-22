@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
-import { useDeleteBill, useDownloadBill, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
+import { useDeleteBill, useDownloadBill, useGetTotalAmount, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
 
 // Interface.
 declare global {
@@ -28,6 +28,10 @@ export default function Dashboard() {
   const [showChart, setShowChart] = useState(false);
   const [chartLoaded, setChartLoaded] = useState(false);
   const [bills, setBills] = useState<any>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [showAmountModal, setShowAmountModal] = useState(false);
+  const amountModalRef = useRef<HTMLDivElement>(null);
+
   const toggleDropdown = () => setShowDropdown(prev => !prev);
 
   // Refs.
@@ -60,7 +64,31 @@ export default function Dashboard() {
     isError: isErrorDownloadBill,
   } = useDownloadBill();
 
+  const {
+  data: totalAmountData,
+  refetch: refetchTotalAmount,
+  isLoading: isLoadingTotalAmount,
+  isSuccess: isSuccessTotalAmount,
+  isError: isErrorTotalAmount,
+} = useGetTotalAmount();
+
   // UseEffects.
+  useEffect(() => {
+    const handleAmountModalClickOutside = (event: MouseEvent) => {
+      if (amountModalRef.current &&
+        !amountModalRef.current.contains(event.target as Node)
+        && showAmountModal) {
+        setShowAmountModal(false);
+      }
+    };
+    if (showAmountModal) {
+      document.addEventListener('mousedown', handleAmountModalClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleAmountModalClickOutside);
+    }
+  }, [showAmountModal]);
+
   useEffect(() => {
     const loadChart = () => {
       if (typeof window !== 'undefined' && !window.google) {
@@ -190,7 +218,7 @@ export default function Dashboard() {
   const drawChart = () => {
     if (!chartLoaded || !window.google || !bills || bills.length === 0) {
       return;
-  }
+    }
 
     const data = new window.google.visualization.DataTable();
     data.addColumn('string', 'File Type');
@@ -236,6 +264,34 @@ export default function Dashboard() {
       setTimeout(drawChart, 100);
     }
   }, [showChart, chartLoaded, bills]);
+  useEffect(() => {
+  if (isSuccessTotalAmount && totalAmountData?.data) {
+    setTotalAmount(totalAmountData.data.total_amount);
+    setShowAmountModal(true);
+  }
+  
+  if (isErrorTotalAmount) {
+    toast.error('Failed to fetch total amount');
+  }
+}, [isSuccessTotalAmount, totalAmountData, isErrorTotalAmount]);
+
+// Add amount modal click outside handler
+useEffect(() => {
+  const handleAmountModalClickOutside = (event: MouseEvent) => {
+    if (amountModalRef.current &&
+      !amountModalRef.current.contains(event.target as Node)
+      && showAmountModal) {
+      setShowAmountModal(false);
+    }
+  };
+  if (showAmountModal) {
+    document.addEventListener('mousedown', handleAmountModalClickOutside);
+  }
+  return () => {
+    document.removeEventListener('mousedown', handleAmountModalClickOutside);
+  }
+}, [showAmountModal]);
+
 
   // Handlers.
   const validateFile = (file: File) => {
@@ -345,9 +401,9 @@ export default function Dashboard() {
   // Get file icon based on type.
   const getFileIcon = (type: string) => {
     if (type.includes('image')) { return '🖼️' };
-    if (type.includes('pdf')) {return '📄'};
-    if (type.includes('word')) {return '📝'};
-    {return '📁'};
+    if (type.includes('pdf')) { return '📄' };
+    if (type.includes('word')) { return '📝' };
+    { return '📁' };
   };
 
   const handleDownloadBill = (billId: string) => {
@@ -356,15 +412,21 @@ export default function Dashboard() {
 
   const handleShowChart = () => {
     if (bills.length === 0) {
-          toast.info('No bills uploaded yet. Upload some files to see the chart.');
-          return;
-        }
+      toast.info('No bills uploaded yet. Upload some files to see the chart.');
+      return;
+    }
     setShowChart(true);
   }
 
   const showAmount = () => {
-
+  if (bills.length === 0) {
+    toast.info('No bills uploaded yet. Upload some files to see the total amount.');
+    return;
   }
+  refetchTotalAmount();
+};
+
+
 
   return (
     <div className="container mx-auto p-8">
@@ -379,7 +441,31 @@ export default function Dashboard() {
           >
             {username?.charAt(0).toUpperCase() || ''}
           </div>
+          {showAmountModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div
+                ref={amountModalRef}
+                className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">Total Amount</h3>
+                  <button
+                    onClick={() => setShowAmountModal(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl font-bold cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
 
+                <div className="text-center py-6">
+                  <div className="text-4xl font-bold text-green-600 mb-2">
+                    ₹{totalAmount.toFixed(2)}
+                  </div>
+                  <p className="text-gray-600">Total from all uploaded bills</p>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Dropdown menu */}
           {showDropdown && (
             <div ref={dropdownRef}
@@ -415,7 +501,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-        {/* Chart Modal */}
+      {/* Chart Modal */}
       {showChart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
@@ -545,12 +631,12 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex gap-3">
-                    <button
-                      onClick={() => handleDownloadBill(bill.id)}
-                      className='text-blue-500 hover:text-blue-700 cursor-pointer'
-                    >
-                      Download
-                    </button>
+                      <button
+                        onClick={() => handleDownloadBill(bill.id)}
+                        className='text-blue-500 hover:text-blue-700 cursor-pointer'
+                      >
+                        Download
+                      </button>
                       <button
                         onClick={() =>
                           deleteBill({ billId: bill.id }, {
