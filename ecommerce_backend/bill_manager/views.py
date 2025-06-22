@@ -18,14 +18,20 @@ class BillViewSet(ViewSet):
     )
     def upload(self, request):
         uploaded_file = request.FILES.get("file")
+        file_data = uploaded_file.read()
         if not uploaded_file:
             return Response({"error"}, status=400)
+        amount = 0.0
+
+        if uploaded_file.content_type.startswith("image/"):
+            amount = self.extract_amount(file_data, uploaded_file.content_type)
 
         bill = Bill.objects.create(
             name=uploaded_file.name,
             content_type=uploaded_file.content_type,
             data=uploaded_file.read(),
             created_by=request.user,
+            amount=amount,
         )
 
         return Response(
@@ -41,6 +47,21 @@ class BillViewSet(ViewSet):
             },
             status=200,
         )
+
+    @action(detail=False, methods=["get"])
+    def total_amount(self, request):
+        bills = Bill.objects.filter(created_by=request.user)
+        total = sum(bill.amount or 0 for bill in bills)
+        response = {
+            "meta": {"message": "Total amount calculated successfully."},
+            "data": {
+                "total_amount": round(total, 2),
+                "bills_count": bills.count(),
+                "bills_with_amounts": bills.exclude(amount__isnull=True)
+                .exclude(amount=0)
+                .count(),
+            },
+        }
 
     def list(self, request):
         bills = Bill.objects.filter(created_by=request.user)
