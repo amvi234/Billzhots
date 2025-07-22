@@ -1,5 +1,3 @@
-# Create your views here.
-# import google.generativeai as genai
 from bill_manager.models import Bill
 from bill_manager.serializers import BillSerializer
 from django.http import HttpResponse
