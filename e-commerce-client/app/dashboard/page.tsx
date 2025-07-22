@@ -353,8 +353,8 @@ useEffect(() => {
         return new Promise<void>((resolve, reject) => {
           sendUploadBill(file, {
             onSuccess: () => {
-              // setUploadedFiles((prev) => [...prev, res.data])
               resolve();
+              refetchBills();
             },
             onError: (err) => {
               console.warn(`Upload failed for ${file.name}:`, err)
