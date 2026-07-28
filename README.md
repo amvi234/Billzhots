@@ -3,6 +3,9 @@
 ## Description:
  A full stack project made with Next.js frontend and Django as backend. Integrated google generative (GENai) LLM model and handled asynchronous tasks with redis and celery for amounts calculation. Integrated Multi factor authentication (MFA) for security and Google charts for visualization. Bills can be downloaded and deleted too from the platform.
 
+## TASK
+AI Integration - Based on the images/pdfs, model should process, extract, retrieve processed outputs from it and display patterns in fe.
+
 
 ## 🛠️ Tech Stack
 
