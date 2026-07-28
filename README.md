@@ -32,6 +32,11 @@ This project uses the following technologies:
 
 ### Environment Configuration
 
+- Create a .env file in frontend repository with following content
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
 - The default environment variables are defined in `.env.template`. For enhanced security:
   1. Copy `.env.template` to `.env`:
      ```bash
