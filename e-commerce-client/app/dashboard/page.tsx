@@ -187,11 +187,9 @@ export default function Dashboard() {
     }
 
     const typeCount: { [key: string]: number } = {};
-    console.log(bills)
 
     bills.forEach((bill: any) => {
       const contentType = bill.name || 'unknown';
-      console.log(bill.content_type)
       let fileType = 'Other';
 
       if (contentType.includes('jpg')) {
@@ -206,7 +204,6 @@ export default function Dashboard() {
 
       typeCount[fileType] = (typeCount[fileType] || 0) + 1;
     });
-    console.log(typeCount)
 
     return Object.entries(typeCount).map(([type, count]) => [type, count]);
   };

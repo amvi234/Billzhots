@@ -5,6 +5,7 @@
 
 ## TASK
 AI Integration - Based on the images/pdfs, model should process, extract, retrieve processed outputs from it and display patterns in fe.
+remove fole format chart - replace with category wise bill calculated/amont distribution
 
 
 ## 🛠️ Tech Stack
