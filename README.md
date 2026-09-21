@@ -3,9 +3,21 @@
 ## Description:
  A full stack project made with Next.js frontend and Django as backend. Integrated google generative (GENai) LLM model and handled asynchronous tasks with redis and celery for amounts calculation. Integrated Multi factor authentication (MFA) for security and Google charts for visualization. Bills can be downloaded and deleted too from the platform.
 
-## TASK
-AI Integration - Based on the images/pdfs, model should process, extract, retrieve processed outputs from it and display patterns in fe.
-remove fole format chart - replace with category wise bill calculated/amont distribution
+## AI Bill Extraction
+
+Every uploaded bill (PDF, PNG or JPEG) is queued on Redis and processed by a
+Celery worker, which sends the file to Gemini and extracts:
+
+| Field | Description |
+| --- | --- |
+| `amount` | Final payable total on the bill |
+| `category` | One of a fixed taxonomy (groceries, dining, utilities, ...) |
+| `vendor` | Merchant name |
+| `bill_date` | Date printed on the bill |
+
+The upload request returns immediately with `processing_status: pending`; the
+dashboard polls until each bill reaches `completed` or `failed`. The chart shows
+category-wise amount distribution, served by `GET /bill/category_distribution/`.
 
 
 ## 🛠️ Tech Stack
@@ -76,10 +88,34 @@ source virtual_env\bin\activate
 pip install -r requirements.txt
 ```
 
-- Run sever
+- Apply migrations
+```bash
+python manage.py migrate
+```
+
+- Run server
 ```bash
 python manage.py runserver
 ```
+
+### Redis & Celery
+
+Bill extraction runs off the request cycle, so Redis and a Celery worker must be
+running for amounts to be filled in.
+
+- Start Redis (or `docker compose up redis`)
+```bash
+redis-server
+```
+
+- Start the Celery worker, from the `ecommerce_backend` directory
+```bash
+celery -A ecommerce_backend worker --loglevel=info
+```
+
+Set `GEMINI_API_KEY` in `.env` first - get one at https://aistudio.google.com/apikey.
+Without a worker running, uploads stay in `pending`; for local work without Redis
+you can set `CELERY_TASK_ALWAYS_EAGER=True` to run extraction inline instead.
 
 If using Docker, then:-
 
