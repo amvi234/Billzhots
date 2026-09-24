@@ -1,7 +1,6 @@
+venv
+staticfiles
+db.sqlite3
+.git
 __pycache__
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.log
-venv/
+*.py[cod]

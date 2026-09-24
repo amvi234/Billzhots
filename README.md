@@ -117,10 +117,41 @@ Set `GEMINI_API_KEY` in `.env` first - get one at https://aistudio.google.com/ap
 Without a worker running, uploads stay in `pending`; for local work without Redis
 you can set `CELERY_TASK_ALWAYS_EAGER=True` to run extraction inline instead.
 
-If using Docker, then:-
+## Docker (whole stack)
+
+`ecommerce_backend/docker-compose.yml` brings up Postgres, Redis, the Django/ASGI
+app, the Celery worker and the Next.js dev server together. Set `GEMINI_API_KEY`
+in the root `.env` first, then:
 
 ```bash
+cd ecommerce_backend
 docker compose up --build
+```
+
+| Service | URL / port | Notes |
+| --- | --- | --- |
+| `frontend` | http://localhost:3000 | Next.js dev server, hot reload |
+| `web` | http://localhost:8000 | Runs `migrate` on boot, then uvicorn with `--reload` |
+| `celery_worker` | - | Consumes the extraction queue |
+| `db` | localhost:5432 | Postgres 16, data in the `postgres_data` volume |
+| `redis` | localhost:6379 | Celery broker and result backend |
+
+The `web` and `celery_worker` services read the root `.env` but override the
+`DB_*` and `REDIS_URL` entries so they point at the `db` and `redis` containers
+instead of `localhost`.
+
+Run the test suite inside the container:
+
+```bash
+docker compose exec web python manage.py test
+```
+
+Other useful commands:
+
+```bash
+docker compose logs -f celery_worker      # watch extraction jobs
+docker compose exec web python manage.py createsuperuser
+docker compose down -v                    # stop and wipe the database volume
 ```
 
 

@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
-import { useDeleteBill, useDownloadBill, useGetTotalAmount, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
+import { useDeleteBill, useDownloadBill, useGetCategoryDistribution, useGetTotalAmount, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
+import { BillPayload, BillProcessingStatus } from '../shared/api/bill/types';
 
 // Interface.
 declare global {
@@ -27,8 +28,9 @@ export default function Dashboard() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [chartLoaded, setChartLoaded] = useState(false);
-  const [bills, setBills] = useState<any>([]);
+  const [bills, setBills] = useState<BillPayload[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
   const [showAmountModal, setShowAmountModal] = useState(false);
   const amountModalRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +69,12 @@ export default function Dashboard() {
   const {
   refetch: refetchTotalAmount,
 } = useGetTotalAmount();
+
+  const {
+    data: categoryDistribution,
+    isLoading: isLoadingCategories,
+    refetch: refetchCategoryDistribution,
+  } = useGetCategoryDistribution(showChart);
 
   // UseEffects.
   useEffect(() => {
@@ -180,55 +188,32 @@ export default function Dashboard() {
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-  // Chart data preparation
-  const getFileTypeDistribution = () => {
-    if (!bills || bills.length === 0) {
-      return [];
+  // Amount spent per category, as extracted from each bill by the LLM.
+  const drawChart = () => {
+    const rows = categoryDistribution ?? [];
+    if (!chartLoaded || !window.google || rows.length === 0) {
+      return;
     }
 
-    const typeCount: { [key: string]: number } = {};
-
-    bills.forEach((bill: any) => {
-      const contentType = bill.name || 'unknown';
-      let fileType = 'Other';
-
-      if (contentType.includes('jpg')) {
-        fileType = 'JPG';
-      } else if (contentType.includes('jpeg')) {
-        fileType = 'JPEG';
-      } else if (contentType.includes('png')) {
-        fileType = 'PNG';
-      } else if (contentType.includes('pdf')) {
-        fileType = 'PDF';
-      }
-
-      typeCount[fileType] = (typeCount[fileType] || 0) + 1;
-    });
-
-    return Object.entries(typeCount).map(([type, count]) => [type, count]);
-  };
-
-  const drawChart = () => {
-    if (!chartLoaded || !window.google || !bills || bills.length === 0) {
+    const container = document.getElementById('category-amount-chart');
+    if (!container) {
       return;
     }
 
     const data = new window.google.visualization.DataTable();
-    data.addColumn('string', 'File Type');
-    data.addColumn('number', 'Count');
-
-    const chartData = getFileTypeDistribution();
-    data.addRows(chartData);
+    data.addColumn('string', 'Category');
+    data.addColumn('number', 'Amount');
+    data.addRows(rows.map((row) => [row.label, row.total]));
 
     const options = {
-      title: 'Distribution of Uploaded File Types',
+      title: 'Amount Distribution by Category',
       titleTextStyle: {
         fontSize: 18,
         bold: true,
         color: '#333'
       },
       pieHole: 0.4,
-      colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
+      colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#B39DDB', '#F48FB1', '#A5D6A7', '#FFAB91', '#90CAF9', '#BCAAA4'],
       backgroundColor: 'white',
       chartArea: {
         left: 50,
@@ -241,22 +226,21 @@ export default function Dashboard() {
         textStyle: {
           fontSize: 12
         }
-      }
+      },
+      tooltip: { text: 'value' },
     };
 
-    const chart = new window.google.visualization.PieChart(
-      document.getElementById('file-type-chart')
-    );
+    const chart = new window.google.visualization.PieChart(container);
     chart.draw(data, options);
   };
 
   // Draw chart when modal opens and data is ready
   useEffect(() => {
-    if (showChart && chartLoaded && bills.length > 0) {
+    if (showChart && chartLoaded && (categoryDistribution ?? []).length > 0) {
       // Small delay to ensure the DOM element is rendered
       setTimeout(drawChart, 100);
     }
-  }, [showChart, chartLoaded, bills]);
+  }, [showChart, chartLoaded, categoryDistribution]);
 
 // Add amount modal click outside handler
 useEffect(() => {
@@ -362,7 +346,7 @@ useEffect(() => {
       });
       await Promise.all(uploadPromises);
       setSelectedFiles([]);
-      toast.success('Bill(s) uploaded successfully')
+      toast.success('Bill(s) uploaded. Reading amounts and categories...')
     }
     catch (error) {
       console.warn(`Some files failed to upload ${error}`);
@@ -393,12 +377,54 @@ useEffect(() => {
     downloadBill({ billId });
   };
 
+  // Extraction happens on a Celery worker, so a freshly uploaded bill shows
+  // its progress here until the worker writes the result back.
+  const renderStatus = (bill: BillPayload) => {
+    switch (bill.processing_status) {
+      case BillProcessingStatus.Pending:
+      case BillProcessingStatus.Processing:
+        return (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+            Reading bill...
+          </span>
+        );
+      case BillProcessingStatus.Failed:
+        return (
+          <span
+            className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800"
+            title={bill.processing_error}
+          >
+            Could not read
+          </span>
+        );
+      case BillProcessingStatus.Completed:
+        return (
+          <>
+            {bill.category && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 capitalize">
+                {bill.category}
+              </span>
+            )}
+            {bill.vendor && (
+              <span className="text-xs text-gray-600">{bill.vendor}</span>
+            )}
+            {bill.bill_date && (
+              <span className="text-xs text-gray-400">{bill.bill_date}</span>
+            )}
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   const handleShowChart = () => {
     if (bills.length === 0) {
       toast.info('No bills uploaded yet. Upload some files to see the chart.');
       return;
     }
     setShowChart(true);
+    refetchCategoryDistribution();
   }
 
   const showAmount = async () => {
@@ -411,6 +437,7 @@ useEffect(() => {
       const result = await refetchTotalAmount();
       if (result.data) {
         setTotalAmount(result.data.total_amount);
+        setPendingCount(result.data.pending_count ?? 0);
         setShowAmountModal(true);
       }
     } catch (error) {
@@ -454,6 +481,12 @@ useEffect(() => {
                     ₹{totalAmount.toFixed(2)}
                   </div>
                   <p className="text-gray-600">Total from all uploaded bills</p>
+                  {pendingCount > 0 && (
+                    <p className="text-sm text-yellow-700 mt-2">
+                      {pendingCount} bill{pendingCount > 1 ? 's are' : ' is'} still being
+                      read - the total will update shortly.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -501,7 +534,7 @@ useEffect(() => {
             className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-auto"
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-800">File Type Distribution</h3>
+              <h3 className="text-xl font-semibold text-gray-800">Category-wise Amount Distribution</h3>
               <button
                 onClick={() => setShowChart(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold cursor-pointer"
@@ -510,11 +543,29 @@ useEffect(() => {
               </button>
             </div>
 
-            {bills.length > 0 ? (
-              <div id="file-type-chart" style={{ width: '100%', height: '400px' }}></div>
+            {isLoadingCategories ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Loading category breakdown...</p>
+              </div>
+            ) : (categoryDistribution ?? []).length > 0 ? (
+              <>
+                <div id="category-amount-chart" style={{ width: '100%', height: '400px' }}></div>
+                <div className="mt-4 border-t pt-4 space-y-1">
+                  {(categoryDistribution ?? []).map((row) => (
+                    <div key={row.category} className="flex justify-between text-sm">
+                      <span className="text-gray-700">
+                        {row.label} <span className="text-gray-400">({row.count})</span>
+                      </span>
+                      <span className="font-medium text-gray-900">₹{row.total.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">No data available. Upload some files to see the chart.</p>
+                <p className="text-gray-500">
+                  No categorised bills yet. Amounts appear here once your uploads finish processing.
+                </p>
               </div>
             )}
           </div>
@@ -609,7 +660,7 @@ useEffect(() => {
               <p className="text-center text-gray-500">Loading uploaded bills...</p>
             ) : bills?.length > 0 ? (
               <div className="space-y-4">
-                {bills?.map((bill: any) => (
+                {bills?.map((bill) => (
                   <div
                     key={bill.id}
                     className="flex items-center justify-between border rounded px-4 py-2 bg-gray-50 hover:bg-gray-100"
@@ -620,9 +671,17 @@ useEffect(() => {
                       </span>
                       <div>
                         <p className="font-semibold">{bill.name}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {renderStatus(bill)}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
+                      {bill.processing_status === BillProcessingStatus.Completed && bill.amount && (
+                        <span className="font-semibold text-green-700">
+                          ₹{Number(bill.amount).toFixed(2)}
+                        </span>
+                      )}
                       <button
                         onClick={() => handleDownloadBill(bill.id)}
                         className='text-blue-500 hover:text-blue-700 cursor-pointer'

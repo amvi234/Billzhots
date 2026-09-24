@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -14,11 +14,9 @@ RUN pip install --upgrade pip \
 
 COPY . /app/
 
-RUN mkdir -p /app/db
-
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-EXPOSE 80
+EXPOSE 8000
 
-CMD ["uvicorn", "ecommerce_backend.asgi:application", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "ecommerce_backend.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
