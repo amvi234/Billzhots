@@ -1,7 +1,7 @@
 # Billzhots
 
 ## Description:
- A full stack project made with Next.js frontend and Django as backend. Integrated google generative (GENai) LLM model and handled asynchronous tasks with redis and celery for amounts calculation. Integrated Multi factor authentication (MFA) for security and Google charts for visualization. Bills can be downloaded and deleted too from the platform.
+Built a full-stack expense tracker with Next.js and Django REST Framework, secured with JWT auth. Users upload PDF or image receipts and see total spend and category breakdowns on a dashboard. Integrated google generative GEMINI LLM model and handled asynchronous tasks with redis and celery for amounts calculation. Integrated Multi factor authentication (MFA) for security and Google charts for visualization.
 
 ## AI Bill Extraction
 
@@ -33,19 +33,17 @@ This project uses the following technologies:
 ### Backend
 
 - Django
+- Django REST Framework
 - Postgres
 
 ### Development Tools
 
 - Docker & Docker Compose
 - Python 12
-- Next.js
-- Django REST Framework
 - Node.js 18+
 - Redis
 - Celery
 - Gemini Model
-- GenAI
 
 ## Setup to run this project:-
 
@@ -106,13 +104,21 @@ python manage.py runserver
 Bill extraction runs off the request cycle, so Redis and a Celery worker must be
 running for amounts to be filled in.
 
-- Start Redis (or `docker compose up redis`)
+- Start Redis, either natively:
 ```bash
 redis-server
 ```
-
-- Start the Celery worker, from the `ecommerce_backend` directory
+  or just the Redis container, from the `backend` directory:
 ```bash
+cd backend
+docker compose up -d redis
+```
+  Both listen on `localhost:6379`, which matches `REDIS_URL` in `.env.template`.
+
+- Start the Celery worker, from the `backend` directory (`ecommerce_backend` is
+  the Django project package inside it)
+```bash
+cd backend
 celery -A ecommerce_backend worker --loglevel=info
 ```
 
@@ -122,12 +128,12 @@ you can set `CELERY_TASK_ALWAYS_EAGER=True` to run extraction inline instead.
 
 ## Docker (whole stack)
 
-`ecommerce_backend/docker-compose.yml` brings up Postgres, Redis, the Django/ASGI
+`backend/docker-compose.yml` brings up Postgres, Redis, the Django/ASGI
 app, the Celery worker and the Next.js dev server together. Set `GEMINI_API_KEY`
 in the root `.env` first, then:
 
 ```bash
-cd ecommerce_backend
+cd backend
 docker compose up --build
 ```
 
@@ -137,7 +143,7 @@ docker compose up --build
 | `web` | http://localhost:8000 | Runs `migrate` on boot, then uvicorn with `--reload` |
 | `celery_worker` | - | Consumes the extraction queue |
 | `db` | localhost:5432 | Postgres 16, data in the `postgres_data` volume |
-| `redis` | localhost:6379 | Celery broker and result backend |
+| `redis` | localhost:6379 | Redis 7, Celery broker and result backend (container `billzhots_redis`) |
 
 The `web` and `celery_worker` services read the root `.env` but override the
 `DB_*` and `REDIS_URL` entries so they point at the `db` and `redis` containers
@@ -153,10 +159,10 @@ Other useful commands:
 
 ```bash
 docker compose logs -f celery_worker      # watch extraction jobs
+docker compose exec redis redis-cli ping  # check Redis is up (expects PONG)
 docker compose exec web python manage.py createsuperuser
 docker compose down -v                    # stop and wipe the database volume
 ```
-
 
 ## License
 
