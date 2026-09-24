@@ -1,6 +1,10 @@
 # Create your models here.
+from typing import Optional
+
 from django.contrib.auth.models import User
 from django.db import models
+from pydantic import BaseModel as PydanticModel
+from pydantic import Field
 from shared.constants.bills import BillCategory, BillProcessingStatus
 from shared.models import BaseModel
 
@@ -29,3 +33,23 @@ class Bill(BaseModel):
         db_index=True,
     )
     processing_error = models.TextField(blank=True, default="")
+
+
+class BillExtraction(PydanticModel):
+    """Response schema handed to Gemini and returned back to the caller."""
+
+    total_amount: Optional[float] = Field(
+        default=None, description="Final payable total, digits only."
+    )
+    vendor: Optional[str] = Field(
+        default=None, description="Merchant or business name."
+    )
+    bill_date: Optional[str] = Field(
+        default=None, description="Date on the bill in YYYY-MM-DD format."
+    )
+    category: Optional[BillCategory] = Field(
+        default=None, description="Best-fit spending category."
+    )
+    confident: bool = Field(
+        default=True, description="False if the document is unreadable or not a bill."
+    )

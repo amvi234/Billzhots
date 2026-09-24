@@ -39,10 +39,13 @@ This project uses the following technologies:
 
 - Docker & Docker Compose
 - Python 12
+- Next.js
+- Django REST Framework
 - Node.js 18+
 - Redis
-- CElery
-- Genai
+- Celery
+- Gemini Model
+- GenAI
 
 ## Setup to run this project:-
 
@@ -154,11 +157,6 @@ docker compose exec web python manage.py createsuperuser
 docker compose down -v                    # stop and wipe the database volume
 ```
 
-
-
-## Screenshot
-
-![Screenshot from 2025-06-21 22-49-01](https://github.com/user-attachments/assets/40c55e29-0a0a-445a-965d-2cfbcce156d5)
 
 ## License
 
