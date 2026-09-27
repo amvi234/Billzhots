@@ -43,9 +43,18 @@ CELERY_TASK_EAGER_PROPAGATES = CELERY_TASK_ALWAYS_EAGER
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
-ALLOWED_HOSTS = ["*"]
 
-CORS_ALLOW_ALL_ORIGINS = True
+def _env_list(name, default=""):
+    return [item.strip() for item in (os.getenv(name) or default).split(",") if item.strip()]
+
+
+ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Render injects the service's public hostname, so it never needs listing by hand.
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 
 from datetime import timedelta
 
