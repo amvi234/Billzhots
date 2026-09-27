@@ -1,12 +1,15 @@
 import lodash from 'lodash';
 import { UseFormSetError } from 'react-hook-form';
 import { ApiErrorResponse } from './types';
-import { localStorageManager, history } from '@/app/lib/utils';
+import { localStorageManager } from '@/app/lib/utils';
 
 export const logout = () => {
   localStorageManager.removeToken();
   localStorageManager.removeRefreshToken();
-  history?.push('/login');
+  localStorageManager.removeName();
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login');
+  }
 };
 
 export const getErrorMessages = (error: ApiErrorResponse) => {
@@ -28,7 +31,7 @@ export const handleResponseErrorMessage = (
   error?: ApiErrorResponse | null,
   setError?: UseFormSetError<any>,
 ) => {
-  if (!error || error.meta.status_code === 401) {
+  if (!error || error.meta?.status_code === 401) {
     return;
   }
 

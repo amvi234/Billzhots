@@ -34,10 +34,59 @@ api.interceptors.request.use((config) => {
   }
 )
 
+let refreshPromise: Promise<string | null> | null = null;
+
+const refreshAccessToken = (): Promise<string | null> => {
+  const refreshToken = localStorageManager.getRefreshToken();
+  if (!refreshToken) {
+    return Promise.resolve(null);
+  }
+
+  refreshPromise ??= axios
+    .post<RefreshTokenResponse>(`${apiBaseUrl}/auth/token/refresh/`, {
+      refresh: refreshToken,
+    })
+    .then((res) => {
+      localStorageManager.setToken(res.data.access);
+      return res.data.access;
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+};
+
 api.interceptors.response.use(
   (res) => res.data,
   async (error): Promise<ApiErrorResponse | null> => {
     let errorResponse: ApiErrorResponse | null;
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest?.headers?.Authorization
+    ) {
+      if (!originalRequest._retried) {
+        originalRequest._retried = true;
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      }
+
+      logout();
+      return Promise.reject({
+        meta: {
+          type: ApiErrorType.Unauthorized,
+          status_code: 401,
+          message: 'Your session has expired. Please log in again.',
+        },
+        data: {},
+      });
+    }
 
     if (error.response?.status >= 500) {
       errorResponse = {
@@ -82,52 +131,17 @@ api.interceptors.response.use(
   },
 );
 
-export const handleRefreshToken = async () => {
-  try {
-    const refreshToken = localStorageManager.getRefreshToken();
-    if (refreshToken) {
-      const res = await api.post<
-        Record<string, string>,
-        ApiResponse<RefreshTokenResponse>
-      >('/auth/token/refresh/', {
-        refresh: refreshToken,
-      });
-
-      if (res.data.access) {
-        localStorageManager.setToken(res.data.access);
-      }
-    } else {
-      logout();
-    }
-  } catch (e: any) {
-    if (e.meta?.type === ApiErrorType.TokenError) {
-      logout();
-    }
-  }
-};
-
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (_, error) => {
-        if (error.meta?.type === ApiErrorType.TokenError) {
-          handleRefreshToken();
-          return true;
-        }
-        return false;
-      },
+      // Expired tokens are refreshed in the response interceptor instead.
+      retry: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       gcTime: 0,
     },
     mutations: {
-      retry: (_, error) => {
-        if (error.meta?.type === ApiErrorType.TokenError) {
-          handleRefreshToken();
-          return true;
-        }
-        return false;
-      },
+      retry: false,
     },
   },
 });
