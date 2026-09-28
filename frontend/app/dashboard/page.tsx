@@ -386,7 +386,7 @@ useEffect(() => {
             className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800"
             title={bill.processing_error}
           >
-            Could not read
+            {bill.processing_error}
           </span>
         );
       case BillProcessingStatus.Completed:
