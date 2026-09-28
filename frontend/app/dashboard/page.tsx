@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../providers';
 import { localStorageManager } from '../lib/utils';
-import { useDeleteBill, useDownloadBill, useGetCategoryDistribution, useGetTotalAmount, useListBills, useUploadBill } from '../shared/api/bill/bill-api';
+import { useDeleteBill, useDownloadBill, useGetCategoryDistribution, useGetTotalAmount, useListBills, useUploadBills } from '../shared/api/bill/bill-api';
 import { BillPayload, BillProcessingStatus } from '../shared/api/bill/types';
 
 // Interface.
@@ -42,8 +42,8 @@ export default function Dashboard() {
 
   // Hooks.
   const {
-    mutate: sendUploadBill,
-  } = useUploadBill();
+    mutateAsync: sendUploadBills,
+  } = useUploadBills();
 
   const {
     data: uploadedBillData,
@@ -330,29 +330,21 @@ useEffect(() => {
     if (selectedFiles.length === 0) { return };
     setUploading(true);
     try {
-      const uploadPromises = selectedFiles.map(async (file) => {
-        return new Promise<void>((resolve, reject) => {
-          sendUploadBill(file, {
-            onSuccess: () => {
-              resolve();
-              refetchBills();
-            },
-            onError: (err) => {
-              console.warn(`Upload failed for ${file.name}:`, err)
-              reject(err);
-            }
-          });
-        });
-      });
-      await Promise.all(uploadPromises);
-      setSelectedFiles([]);
-      toast.success('Bill(s) uploaded. Reading amounts and categories...')
+      const res = await sendUploadBills(selectedFiles);
+      const { bills: uploaded, errors } = res.data;
+      const failedNames = new Set(errors.map((e) => e.name));
+      setSelectedFiles((prev) => prev.filter((file) => failedNames.has(file.name)));
+      if (uploaded.length > 0) {
+        toast.success(`${uploaded.length} bill(s) uploaded. Reading amounts and categories...`);
+      }
+      errors.forEach((e) => toast.error(`${e.name}: ${e.error}`));
     }
-    catch (error) {
-      console.warn(`Some files failed to upload ${error}`);
+    catch (error: any) {
+      toast.error(error?.error || error?.meta?.message || 'Failed to upload bills. Please try again.');
     }
     finally {
       setUploading(false);
+      refetchBills();
     }
   };
 

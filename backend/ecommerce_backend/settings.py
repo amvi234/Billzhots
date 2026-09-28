@@ -42,6 +42,7 @@ CELERY_TASK_EAGER_PROPAGATES = CELERY_TASK_ALWAYS_EAGER
 # Gemini (bill extraction)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+GEMINI_RATE_LIMIT = os.getenv("GEMINI_RATE_LIMIT", "8/m")
 
 
 def _env_list(name, default=""):

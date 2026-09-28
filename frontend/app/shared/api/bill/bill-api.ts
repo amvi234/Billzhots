@@ -6,11 +6,11 @@ import { UploadBillResponseMapper } from "./mapper";
 
 const POLL_INTERVAL_MS = 3000;
 
-export const uploadBill = async (
-    file: File,
+export const uploadBills = async (
+    files: File[],
 ): Promise<ApiResponse<UploadBillResponse>> => {
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((file) => formData.append('file', file));
     const res = await api.post<any, ApiResponse<UploadBillResponse>>('bill/upload/', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
@@ -20,9 +20,9 @@ export const uploadBill = async (
     return res;
 }
 
-export const useUploadBill = () => {
-    return useMutation<ApiResponse<UploadBillResponse>, ApiErrorResponse, File>({
-        mutationFn: async (file) => uploadBill(file),
+export const useUploadBills = () => {
+    return useMutation<ApiResponse<UploadBillResponse>, ApiErrorResponse, File[]>({
+        mutationFn: async (files) => uploadBills(files),
     })
 }
 

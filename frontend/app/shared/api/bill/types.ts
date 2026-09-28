@@ -19,9 +19,21 @@ export type BillPayload = {
     created_at: string;
 }
 
-export type UploadBillResponse = {
+export type UploadedBill = {
+    id: string;
+    name: string;
     url: string;
     processing_status: BillProcessingStatus;
+}
+
+export type UploadBillError = {
+    name: string;
+    error: string;
+}
+
+export type UploadBillResponse = {
+    bills: UploadedBill[];
+    errors: UploadBillError[];
 }
 
 export type BillIdPayload = {

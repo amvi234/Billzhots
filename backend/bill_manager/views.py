@@ -1,5 +1,8 @@
+from functools import partial
+
 from bill_manager.models import Bill
 from bill_manager.serializers import BillSerializer
+from django.db import transaction
 from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -13,6 +16,18 @@ from .extraction import SUPPORTED_MIME_TYPES, normalize_mime_type
 from .tasks import extract_bill_details_task
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB, matching the client-side limit.
+MAX_FILES_PER_UPLOAD = 20
+
+
+def validate_upload(uploaded_file):
+    """Return an error message for a file we cannot accept, else None."""
+    if uploaded_file.size > MAX_FILE_SIZE:
+        return "File is too large. Maximum size is 10MB."
+
+    if normalize_mime_type(uploaded_file.content_type) not in SUPPORTED_MIME_TYPES:
+        return f"Unsupported file type {uploaded_file.content_type!r}."
+
+    return None
 
 
 class BillViewSet(ViewSet):
@@ -23,46 +38,69 @@ class BillViewSet(ViewSet):
         methods=["post"],
     )
     def upload(self, request):
-        uploaded_file = request.FILES.get("file")
-        if not uploaded_file:
+        uploaded_files = request.FILES.getlist("file")
+        if not uploaded_files:
             return Response({"error": "No file was uploaded."}, status=400)
 
-        if uploaded_file.size > MAX_FILE_SIZE:
+        if len(uploaded_files) > MAX_FILES_PER_UPLOAD:
             return Response(
-                {"error": "File is too large. Maximum size is 10MB."}, status=400
-            )
-
-        content_type = normalize_mime_type(uploaded_file.content_type)
-        if content_type not in SUPPORTED_MIME_TYPES:
-            return Response(
-                {"error": f"Unsupported file type {uploaded_file.content_type!r}."},
+                {
+                    "error": f"Too many files. Upload at most {MAX_FILES_PER_UPLOAD} at a time."
+                },
                 status=400,
             )
 
-        bill = Bill.objects.create(
-            name=uploaded_file.name,
-            content_type=content_type,
-            data=uploaded_file.read(),
-            created_by=request.user,
-            processing_status=BillProcessingStatus.PENDING.value,
-        )
+        valid_files, errors = [], []
+        for uploaded_file in uploaded_files:
+            error = validate_upload(uploaded_file)
+            if error:
+                errors.append({"name": uploaded_file.name, "error": error})
+            else:
+                valid_files.append(uploaded_file)
 
-        # Queued on Redis and picked up by a Celery worker, so the upload
-        # response does not wait on the LLM call.
-        extract_bill_details_task.delay(str(bill.id))
+        if not valid_files:
+            return Response(
+                {"error": errors[0]["error"], "data": {"bills": [], "errors": errors}},
+                status=400,
+            )
+
+        with transaction.atomic():
+            bills = [
+                Bill.objects.create(
+                    name=uploaded_file.name,
+                    content_type=normalize_mime_type(uploaded_file.content_type),
+                    data=uploaded_file.read(),
+                    created_by=request.user,
+                    processing_status=BillProcessingStatus.PENDING.value,
+                )
+                for uploaded_file in valid_files
+            ]
+            # Queued on Redis and picked up by a Celery worker, so the upload
+            # response does not wait on the LLM call.
+            for bill in bills:
+                transaction.on_commit(
+                    partial(extract_bill_details_task.delay, str(bill.id))
+                )
 
         return Response(
             {
                 "meta": {
-                    "message": "Bill uploaded successfully. Bill Amount will be updated soon."
+                    "message": f"{len(bills)} bill(s) uploaded successfully. "
+                    "Bill amounts will be updated soon."
                 },
                 "data": {
-                    "id": bill.id,
-                    "name": bill.name,
-                    "content_type": bill.content_type,
-                    "uploaded_at": bill.created_at,
-                    "processing_status": bill.processing_status,
-                    "url": f"/api/download/{bill.id}/",
+                    "bills": [
+                        {
+                            "id": bill.id,
+                            "name": bill.name,
+                            "content_type": bill.content_type,
+                            "uploaded_at": bill.created_at,
+                            "processing_status": bill.processing_status,
+                            "url": f"/api/download/{bill.id}/",
+                        }
+                        for bill in bills
+                    ],
+                    "errors": errors,
                 },
             },
             status=200,

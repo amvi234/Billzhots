@@ -3,7 +3,7 @@ import { BillPayload, UploadBillResponse } from "./types";
 
 export const UploadBillResponseMapper = (response: ApiResponse): UploadBillResponse => {
     const data = response.data || {};
-    return data;
+    return { bills: data.bills ?? [], errors: data.errors ?? [] };
 }
 export const listBillResponseMapper = (response: ApiResponse): BillPayload[] => {
     const data = response.data || {};

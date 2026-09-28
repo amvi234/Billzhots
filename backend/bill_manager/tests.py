@@ -33,6 +33,30 @@ def make_response(**overrides):
     return FakeResponse()
 
 
+def quota_error(quota_id):
+    """A 429 shaped like the one Gemini returns when a quota is exhausted."""
+    return genai_errors.ClientError(
+        429,
+        {
+            "error": {
+                "code": 429,
+                "status": "RESOURCE_EXHAUSTED",
+                "message": "You exceeded your current quota.",
+                "details": [
+                    {
+                        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+                        "violations": [{"quotaId": quota_id, "quotaValue": "20"}],
+                    },
+                    {
+                        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+                        "retryDelay": "53.844235298s",
+                    },
+                ],
+            }
+        },
+    )
+
+
 class ExtractionTests(TestCase):
     @override_settings(GEMINI_API_KEY="test-key")
     @patch("bill_manager.extraction.get_client")
@@ -170,6 +194,36 @@ class TaskTests(TestCase):
         )
         self.assertEqual(extract_bill_details_task.max_retries, 3)
 
+    def test_task_is_rate_limited(self):
+        self.assertTrue(extract_bill_details_task.rate_limit)
+
+    @patch("bill_manager.tasks.extract_bill_details")
+    def test_rate_limit_error_is_retried_not_failed(self, extract):
+        extract.side_effect = quota_error("GenerateRequestsPerMinutePerProjectPerModel-FreeTier")
+
+        with patch.object(extract_bill_details_task, "retry", side_effect=RuntimeError("retry")) as retry:
+            with self.assertRaises(RuntimeError):
+                extract_bill_details_task(str(self.bill.id))
+
+        # Honours Gemini's suggested delay rather than a fixed backoff.
+        self.assertEqual(retry.call_args.kwargs["countdown"], 54)
+        self.bill.refresh_from_db()
+        self.assertEqual(
+            self.bill.processing_status, BillProcessingStatus.PENDING.value
+        )
+
+    @patch("bill_manager.tasks.extract_bill_details")
+    def test_daily_quota_error_fails_without_retrying(self, extract):
+        extract.side_effect = quota_error("GenerateRequestsPerDayPerProjectPerModel-FreeTier")
+
+        with patch.object(extract_bill_details_task, "retry") as retry:
+            extract_bill_details_task(str(self.bill.id))
+
+        retry.assert_not_called()
+        self.bill.refresh_from_db()
+        self.assertEqual(self.bill.processing_status, BillProcessingStatus.FAILED.value)
+        self.assertIn("Daily extraction quota", self.bill.processing_error)
+
     def test_task_is_a_noop_for_deleted_bill(self):
         bill_id = str(self.bill.id)
         self.bill.delete()
@@ -196,13 +250,51 @@ class ViewTests(TestCase):
     @patch("bill_manager.views.extract_bill_details_task")
     def test_upload_queues_task_asynchronously(self, task):
         upload = SimpleUploadedFile("bill.pdf", PDF_BYTES, content_type="application/pdf")
-        res = self.client.post("/bill/upload/", {"file": upload})
+        with self.captureOnCommitCallbacks(execute=True):
+            res = self.client.post("/bill/upload/", {"file": upload})
 
         self.assertEqual(res.status_code, 200)
         task.delay.assert_called_once()
         self.assertEqual(
-            res.json()["data"]["processing_status"], BillProcessingStatus.PENDING.value
+            res.json()["data"]["bills"][0]["processing_status"],
+            BillProcessingStatus.PENDING.value,
         )
+
+    @patch("bill_manager.views.extract_bill_details_task")
+    def test_upload_accepts_multiple_files(self, task):
+        uploads = [
+            SimpleUploadedFile(f"bill{i}.pdf", PDF_BYTES + bytes([i]), content_type="application/pdf")
+            for i in range(3)
+        ]
+        with self.captureOnCommitCallbacks(execute=True):
+            res = self.client.post("/bill/upload/", {"file": uploads}, format="multipart")
+
+        self.assertEqual(res.status_code, 200)
+        bills = res.json()["data"]["bills"]
+        self.assertEqual([b["name"] for b in bills], ["bill0.pdf", "bill1.pdf", "bill2.pdf"])
+        self.assertEqual(task.delay.call_count, 3)
+        self.assertEqual(
+            {call.args[0] for call in task.delay.call_args_list},
+            {str(b["id"]) for b in bills},
+        )
+        # Each bill keeps its own bytes rather than sharing one upload's data.
+        for i, bill in enumerate(Bill.objects.order_by("name")):
+            self.assertEqual(bytes(bill.data), PDF_BYTES + bytes([i]))
+
+    @patch("bill_manager.views.extract_bill_details_task")
+    def test_upload_skips_invalid_files_but_keeps_valid_ones(self, task):
+        uploads = [
+            SimpleUploadedFile("bill.pdf", PDF_BYTES, content_type="application/pdf"),
+            SimpleUploadedFile("sheet.xls", b"x", content_type="application/vnd.ms-excel"),
+        ]
+        with self.captureOnCommitCallbacks(execute=True):
+            res = self.client.post("/bill/upload/", {"file": uploads}, format="multipart")
+
+        self.assertEqual(res.status_code, 200)
+        data = res.json()["data"]
+        self.assertEqual([b["name"] for b in data["bills"]], ["bill.pdf"])
+        self.assertEqual([e["name"] for e in data["errors"]], ["sheet.xls"])
+        task.delay.assert_called_once()
 
     def test_upload_rejects_unsupported_type(self):
         upload = SimpleUploadedFile("sheet.xls", b"x", content_type="application/vnd.ms-excel")
